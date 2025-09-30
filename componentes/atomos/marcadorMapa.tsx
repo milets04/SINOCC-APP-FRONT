@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { AccessibilityProps, GestureResponderEvent, Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 
-export type marcadorMapaProps = {
+export type MarcadorMapaProps = {
     size?: number;
     color?: string;
     style?: StyleProp<ViewStyle>;
@@ -9,7 +9,7 @@ export type marcadorMapaProps = {
     disabled?: boolean;
 } & AccessibilityProps;
 
-const marcadorMapa = ({
+const MarcadorMapa = ({
     size = 48,
     color = "#068EF7",
     style,
@@ -18,7 +18,7 @@ const marcadorMapa = ({
     accessibilityLabel = "Marcador de ubicación",
     accessibilityRole = "button",
     ...a11y
-}: marcadorMapaProps) => {
+}: MarcadorMapaProps) => {
     const pin = {
         width: size,
         height: size,
@@ -56,4 +56,4 @@ const styles = StyleSheet.create({
     pin: { alignItems: "center", justifyContent: "center"},
 });
 
-export default memo(marcadorMapa);
+export default memo(MarcadorMapa);
