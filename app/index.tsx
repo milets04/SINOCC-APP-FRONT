@@ -1,5 +1,13 @@
-import CategoriaCierre from "@/componentes/atomos/categoriaCierre";
 import { Text, View } from "react-native";
+import { useState } from 'react';
+
+  const [isEnabled, setIsEnabled] = useState(false);
+
+  const handleToggle = (newValue: boolean) => {
+    setIsEnabled(newValue);
+    // Aquí puedes agregar tu lógica personalizada
+    console.log('Switch cambiado a:', newValue);
+  };
 
 export default function Index() {
   return (
@@ -15,8 +23,7 @@ export default function Index() {
         fontWeight: "bold",
         fontSize: 20,
         textAlign: "center"
-      }}>Sistema de Notificacion de Cierre de Calles - SINOCC</Text>
-      <CategoriaCierre categoria="MEDIUM"/>
+      }}>Sistema de0 Notificacion de Cierre de Calles - SINOCC</Text>
     </View>
   );
 }
