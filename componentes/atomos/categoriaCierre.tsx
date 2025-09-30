@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-type CategoriaType = 'LOW' | 'MEDIUM' | 'HIGH';
+type CategoriaType = 'BAJO' | 'MEDIO' | 'ALTO';
 
 interface CategoriaCierreProps {
   categoria: CategoriaType;
@@ -10,19 +10,19 @@ interface CategoriaCierreProps {
 const CategoriaCierre: React.FC<CategoriaCierreProps> = ({ categoria }) => {
   const getEstilos = () => {
     switch (categoria) {
-      case 'LOW':
+      case 'BAJO':
         return {
           backgroundColor: '#ddfce7ff',
           textColor: '#0EAA00',
           texto: 'LOW'
         };
-      case 'MEDIUM':
+      case 'MEDIO':
         return {
           backgroundColor: '#fcf9f2ff',
           textColor: '#C9BD0B',
           texto: 'MEDIUM'
         };
-      case 'HIGH':
+      case 'ALTO':
         return {
           backgroundColor: '#fae1e1ff',
           textColor: '#ED1E1E',
