@@ -1,5 +1,6 @@
-import { Text, View } from "react-native";
+import MarcadorMapa from "@/componentes/atomos/marcadorMapa";
 import { useState } from 'react';
+import { Text, View } from "react-native";
 
   const [isEnabled, setIsEnabled] = useState(false);
 
@@ -24,6 +25,7 @@ export default function Index() {
         fontSize: 20,
         textAlign: "center"
       }}>Sistema de0 Notificacion de Cierre de Calles - SINOCC</Text>
+      <MarcadorMapa/>
     </View>
   );
 }
