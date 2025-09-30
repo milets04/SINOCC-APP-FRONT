@@ -1,3 +1,4 @@
+import CategoriaCierre from "@/componentes/atomos/categoriaCierre";
 import { Text, View } from "react-native";
 
 export default function Index() {
@@ -15,6 +16,7 @@ export default function Index() {
         fontSize: 20,
         textAlign: "center"
       }}>Sistema de Notificacion de Cierre de Calles - SINOCC</Text>
+      <CategoriaCierre categoria="MEDIUM"/>
     </View>
   );
 }
