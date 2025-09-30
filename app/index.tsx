@@ -25,7 +25,7 @@ export default function Index() {
         fontSize: 20,
         textAlign: "center"
       }}>Sistema de0 Notificacion de Cierre de Calles - SINOCC</Text>
-      <MarcadorMapa/>
+      <MarcadorMapa onPress={() => handleToggle(!isEnabled)} />
     </View>
   );
 }
