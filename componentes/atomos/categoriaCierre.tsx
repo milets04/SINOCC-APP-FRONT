@@ -14,25 +14,25 @@ const CategoriaCierre: React.FC<CategoriaCierreProps> = ({ categoria }) => {
         return {
           backgroundColor: '#ddfce7ff',
           textColor: '#0EAA00',
-          texto: 'LOW'
+          texto: 'BAJO'
         };
       case 'MEDIO':
         return {
           backgroundColor: '#fcf9f2ff',
           textColor: '#C9BD0B',
-          texto: 'MEDIUM'
+          texto: 'MEDIO'
         };
       case 'ALTO':
         return {
           backgroundColor: '#fae1e1ff',
           textColor: '#ED1E1E',
-          texto: 'HIGH'
+          texto: 'ALTO'
         };
       default:
         return {
           backgroundColor: '#E0E0E0',
           textColor: '#666666',
-          texto: 'UNKNOWN'
+          texto: 'DESCONOCIDO'
         };
     }
   };
