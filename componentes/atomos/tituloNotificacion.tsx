@@ -18,7 +18,8 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 15,
     color: '#068EF7',
-    fontWeight: '400',
+    fontWeight: 'bold',
+    fontFamily: 'SF Pro',
   },
 });
 

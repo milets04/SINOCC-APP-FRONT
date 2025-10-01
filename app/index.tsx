@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import Titulo from '@/componentes/atomos/tituloNotificacion';
 
 export default function Index() {
   return (
@@ -15,8 +16,9 @@ export default function Index() {
         fontSize: 20,
         textAlign: "center"
       }}>Sistema de Notificacion de Cierre de Calles - SINOCC</Text>
-
+      <Titulo>Hola este es un titulo</Titulo>
     </View>
+    
     
   );
 }
