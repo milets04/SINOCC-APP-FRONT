@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, TextInput, TextInputProps, ViewStyle } from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, TextStyle, DimensionValue } from 'react-native';
 
 interface InputProps extends TextInputProps {
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   placeholder?: string;
 }
@@ -22,7 +22,7 @@ const Input: React.FC<InputProps> = ({
           width,
           height,
         },
-        style as ViewStyle,
+        style as TextStyle,
       ]}
       placeholder={placeholder}
       placeholderTextColor="#000000"
