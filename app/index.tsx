@@ -13,7 +13,7 @@ export default function Index() {
         fontWeight: "bold",
         fontSize: 20,
         textAlign: "center"
-      }}>Sistema de Notif</Text>
+      }}>Sistema de Notificación de Cierre de Calles</Text>
     </View>
   );
 }
