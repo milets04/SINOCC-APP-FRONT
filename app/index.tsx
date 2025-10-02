@@ -16,7 +16,7 @@ export default function Index() {
         fontSize: 20,
         textAlign: "center"
       }}>Sistema de Notificacion de Cierre de Calles - SINOCC</Text>
-      <BotonHeader icon ="bell"/>
+      <BotonHeader icon="bell" onPress={() => console.log("click campana")} />
     </View>
   );
 }
