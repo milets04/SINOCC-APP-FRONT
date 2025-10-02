@@ -1,4 +1,3 @@
-import TituloPestania from "@/componentes/atomos/tituloPestania";
 import { Text, View } from "react-native";
 export default function Index() {
   return (
@@ -15,9 +14,6 @@ export default function Index() {
         fontSize: 20,
         textAlign: "center"
       }}>Sistema de Notificacion de Cierre de Calles - SINOCC</Text>
-      <TituloPestania>
-        Estoy probando mi titulo
-      </TituloPestania>
     </View>
   );
 }
