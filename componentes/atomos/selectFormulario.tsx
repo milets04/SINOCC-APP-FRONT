@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { FlatList, Modal, StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle, } from 'react-native';
 
 export interface SelectOption {
   label: string;
   value: string | number;
 }
 
+type Dimension = number | `${number}%`;
+
 interface SelectProps {
-  width?: number | string;
+  width?: Dimension;
   height?: number;
   placeholder?: string;
   options: SelectOption[];
   value?: string | number;
   onValueChange: (value: string | number) => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -34,6 +36,8 @@ const Select: React.FC<SelectProps> = ({
     onValueChange(selectedValue);
     setIsOpen(false);
   };
+
+  const containerStyle: StyleProp<ViewStyle> = [{ width, height }, style];
 
   return (
     <View style={[{ width, height }, style]}>
