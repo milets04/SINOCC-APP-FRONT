@@ -6,7 +6,7 @@ interface TituloTarjetaProps {
     style?: TextStyle;
 }
 
-const TituloPestania: React.FC<TituloTarjetaProps> = ({ children, style}) => {
+const TituloTarjeta: React.FC<TituloTarjetaProps> = ({ children, style}) => {
     return (
        <Text style={[styles.text, style]}>
         {children}
@@ -23,4 +23,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default TituloPestania;
+export default TituloTarjeta;
