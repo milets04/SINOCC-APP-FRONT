@@ -15,6 +15,6 @@ export default function Index() {
         fontSize: 20,
         textAlign: "center"
       }}>Sistema de Notificación de Cierre de Calles</Text>
-    </View>
+    </View> 
   );
 }
