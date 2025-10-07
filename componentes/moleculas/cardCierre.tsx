@@ -39,8 +39,9 @@ const CardCierre = ({
         <Icono
           icon="location"
           library="evil"
-          size={24}
-          color="#3B82F6"
+          size={40}
+          color="#068EF7"
+          style={{ marginTop: -13 }}
           {...leftIconProps}
         />
       </View>
@@ -60,7 +61,7 @@ const CardCierre = ({
           icon="pencil-outline"
           library="materialCommunity"
           size={18}
-          color="#111827"
+          color="#1D1B20"
           style={styles.actionTop}
           onPress={onPressEditar}
           {...editIconProps}
@@ -70,7 +71,7 @@ const CardCierre = ({
           icon="cancel"
           library="material"
           size={20}
-          color="#111827"
+          color="#1D1B20"
           style={styles.actionBottom}
           onPress={onPressEliminar}
           {...deleteIconProps}
@@ -84,15 +85,16 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 14,
+    padding: 30,
     flexDirection: "row",
-    gap: 10,
+    gap: 15,
     elevation: 3,
   },
   leftCol: {
     width: 28,
     alignItems: "flex-start",
-    paddingTop: 2,
+    paddingTop: 4,
+    marginLeft: -12
   },
   centerCol: {
     flex: 1,
@@ -101,13 +103,14 @@ const styles = StyleSheet.create({
     width: 36,
     justifyContent: "space-between",
     alignItems: "flex-end",
-    paddingVertical: 2,
+    paddingTop: 16,
+    paddingVertical: 0,
   },
   titleSpacing: { marginBottom: 6 },
   lines: { gap: 4 },
   firstLine: { marginTop: 2 },
   actionTop: { alignSelf: "flex-end" },
-  actionBottom: { alignSelf: "flex-end" },
+  actionBottom: { alignSelf: "flex-end", marginBottom: 8 },
 });
 
 export default memo(CardCierre);
