@@ -3,9 +3,9 @@ import React, { memo } from "react";
 import { AccessibilityProps, Pressable, StyleProp, StyleSheet, View, ViewStyle, } from "react-native";
 
 type IconLibrary = "feather" | "materialCommunity" | "evil" | "material";
-type HeaderIconName = "bell" | "settings" | "pencil-outline" | "location" | "cancel";
+type HeaderIconName = "bell" | "settings" | "pencil-outline" | "location" | "cancel" | "clock";
 /*pencil-outline --- library = "materialCommunity"
-location --- library = "evil"
+location y clock --- library = "evil"
 cancel --- library = "material" 
 Si no es ni bell ni settings, ejm: <BotonHeader icon="cancel" library="material"/>*/
 export type BotonHeaderProps = {
