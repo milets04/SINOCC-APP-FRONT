@@ -47,7 +47,7 @@ const CierreAct = ({
           <Icono icon="location" library="evil" size={20} color="#6B7280" />
           <DescripcionNoti texto={lugar} estilo={styles.muted} />
         </View>
-        <View style={{ marginTop: 10, marginBottom: 10 }}>
+        <View style={styles.descriptionRow}>
           <DescripcionNoti texto={descripcion} estilo={{ fontSize: 12 }} />
         </View>
         <View style={styles.rowBottom}>
@@ -95,11 +95,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    paddingLeft: 3,
+  },
+  descriptionRow:{
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingLeft: 27,
+    marginVertical: 4,
   },
   rowBottom: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingLeft: 3,
   },
   startGroup: {
     flexDirection: "row",
