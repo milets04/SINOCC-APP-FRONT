@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View, StyleSheet, Animated, ViewStyle } from 'react-native';
+import { Animated, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 interface SwitchProps {
   value: boolean;
