@@ -22,7 +22,7 @@ const ImagenNotificacion: React.FC<ImagenNotificacionProps> = ({
   style,
 }) => {
   const hexColor = colorMap[color];
-  const scale = size / 36; // Escala basada en el tamaño original de 36
+  const scale = size / 36; 
 
   return (
     <View style={[styles.container, { width: size, height: size }, style]}>
