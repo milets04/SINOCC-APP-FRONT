@@ -1,9 +1,9 @@
-import PantallaNotificaciones from '@/componentes/templates/pantallaNotif';
+import PantallaConfi from '@/componentes/templates/pantallaConf';
 
 export default function Index() {
   return (
 
-      <PantallaNotificaciones />
+      <PantallaConfi />
 
   );
 }

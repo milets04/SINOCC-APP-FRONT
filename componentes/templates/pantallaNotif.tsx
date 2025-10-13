@@ -2,7 +2,6 @@ import Header from '@/componentes/moleculas/header';
 import MenuInf from '@/componentes/moleculas/menuInf';
 import NotificationCard from '@/componentes/moleculas/notificacion';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function pantallaNotificaciones() {
