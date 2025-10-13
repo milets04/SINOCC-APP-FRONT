@@ -1,7 +1,6 @@
 import ZoneNotifications from '@/componentes/moleculas/menuZonas';
 import { useState } from 'react';
 import { Text, View } from "react-native";
-
 export default function Index() {
   const [zones, setZones] = useState([
     { id: '1', name: 'Sacaba', enabled: false },
