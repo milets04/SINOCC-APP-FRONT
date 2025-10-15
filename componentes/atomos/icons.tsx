@@ -2,8 +2,8 @@ import { EvilIcons, Feather, MaterialCommunityIcons, MaterialIcons } from "@expo
 import React, { memo } from "react";
 import { AccessibilityProps, Pressable, StyleProp, StyleSheet, View, ViewStyle, } from "react-native";
 
-type IconLibrary = "feather" | "materialCommunity" | "evil" | "material" | "entypo";
-type HeaderIconName = "bell" | "settings" | "pencil-outline" | "location" | "cancel" | "clock" | "email" | "lock";
+type IconLibrary = "feather" | "materialCommunity" | "evil" | "material" ;
+type HeaderIconName = "bell" | "settings" | "pencil-outline" | "location" | "cancel" | "clock" | "lock";
 /*pencil-outline --- library = "materialCommunity"
 location y clock --- library = "evil"
 cancel --- library = "material" 
