@@ -1,9 +1,9 @@
-import PantallaConfi from '@/componentes/templates/pantallaConf';
+import EditarAdmin from '@/componentes/templates/editarAdmin';
 
 export default function Index() {
   return (
 
-      <PantallaConfi />
+      <EditarAdmin />
 
   );
 }
