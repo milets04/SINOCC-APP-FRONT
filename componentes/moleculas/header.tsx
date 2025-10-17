@@ -1,18 +1,39 @@
 import Icono from "@/componentes/atomos/icons";
 import React, { memo } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Alert, Image, StyleSheet, View } from "react-native";
 
 const SINOCC_PM = require("../../assets/images/SINOCC_PM.png");
 
 const Header = () => {
+  const handleBellPress = () => {
+    Alert.alert("Notificaciones", "Centro de notificaciones abierto");
+  };
+
+  const handleSettingsPress = () => {
+    Alert.alert("Configuración", "Configuración abierta");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
         <Image source={SINOCC_PM} style={styles.logo} resizeMode="contain" />
       </View>
+
       <View style={styles.rightSection}>
-        <Icono icon="bell" library="feather" size={22} color="#28343D" />
-        <Icono icon="settings" library="feather" size={22} color="#28343D" />
+        <Icono
+          icon="bell"
+          library="feather"
+          size={22}
+          color="#28343D"
+          onPress={handleBellPress} 
+        />
+        <Icono
+          icon="settings"
+          library="feather"
+          size={22}
+          color="#28343D"
+          onPress={handleSettingsPress} 
+        />
       </View>
     </View>
   );
