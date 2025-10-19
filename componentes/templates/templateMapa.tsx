@@ -1,24 +1,25 @@
-import Mapa from '@/componentes/moleculas/mapa';
-import MenuInf from '@/componentes/moleculas/menuInf';
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Dimensions, SafeAreaView, StyleSheet, View } from 'react-native';
 
-interface TemplateMapaProps {
-  homeIcon: React.ReactNode;
-  mapIcon: React.ReactNode;
-  onHomePress: () => void;
-  onMapPress: () => void;
-}
+import Mapa from '@/componentes/moleculas/mapa';
+import MenuInf from '@/componentes/moleculas/menuInf';
 
-const TemplateMapa: React.FC<TemplateMapaProps> = ({
-  homeIcon,
-  mapIcon,
-  onHomePress,
-  onMapPress,
-}) => {
+
+const TemplateMapa: React.FC = () => {
+  const router = useRouter(); 
+
   const screenHeight = Dimensions.get('window').height;
-  const menuHeight = 60; // Altura aproximada del MenuInf
-  const mapaHeight = screenHeight - menuHeight - 50; // 50 para SafeAreaView
+  const menuHeight = 60; 
+  const mapaHeight = screenHeight - menuHeight - 50; 
+
+  const navegarAlHome = () => {
+    router.push('/'); 
+  };
+
+  const noHacerNada = () => {
+    console.log("Ya estás en la pantalla del mapa.");
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -26,18 +27,18 @@ const TemplateMapa: React.FC<TemplateMapaProps> = ({
         {/* Mapa */}
         <View style={styles.mapaContainer}>
           <Mapa
-            ubicaciones={[]} // Sin marcadores por ahora
+            ubicaciones={[]} 
             width={Dimensions.get('window').width}
             height={mapaHeight}
           />
         </View>
 
-        {/* Menú Inferior */}
+        {/* Menú Inferior (ahora con la lógica correcta) */}
         <MenuInf
-          homeIcon={homeIcon}
-          mapIcon={mapIcon}
-          onHomePress={onHomePress}
-          onMapPress={onMapPress}
+          homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
+          mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />} 
+          onHomePress={navegarAlHome}
+          onMapPress={noHacerNada}
         />
       </View>
     </SafeAreaView>
@@ -59,5 +60,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
 
 export default TemplateMapa;
