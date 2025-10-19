@@ -2,33 +2,50 @@ import CierreAct from "@/componentes/moleculas/cierreAct";
 import Header from "@/componentes/moleculas/header";
 import MenuInf from "@/componentes/moleculas/menuInf";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { memo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 const Principal = () => {
+    const router = useRouter();
+
+    const navegarAlMapa = () => {
+      router.push("/mapa");
+    };
+    
+    /*Con error porque falta llamado de funciones en el header
+
+    const navegarANotif = () => {
+      router.push("/pantallaNotif");
+    };
+
+    const navegarAConf = () => {
+      router.push("/pantallaConf");
+    };
+    */
     const cierres = [
     {
-      titulo: "Mel tonta",
-      lugar: "Sansi",
-      descripcion: "No entiende",
+      titulo: "Avenida Oquendo",
+      lugar: "Centro",
+      descripcion: "Cierre por obras",
       horaInicio: "2:15 PM",
       estimado: "1–2 hours",
       categoriaAlerta: "exito",
       categoriaNivel: "BAJO",
     },
     {
-      titulo: "Mel tonta",
-      lugar: "casa R",
-      descripcion: "migajera",
+      titulo: "Calle Tarija",
+      lugar: "delfines",
+      descripcion: "pintado de casetas",
       horaInicio: "6:15 PM",
       estimado: "1–2 hours",
       categoriaAlerta: "peligro",
       categoriaNivel: "ALTO",
     },
     {
-      titulo: "Mel tonta",
-      lugar: "casa R",
-      descripcion: "chatgpt",
+      titulo: "Avenida Circunvalacion",
+      lugar: "casa comunal",
+      descripcion: "Cierre por cañerias",
       horaInicio: "6:15 PM",
       estimado: "1–2 hours",
       categoriaAlerta: "peligro",
@@ -61,7 +78,7 @@ const Principal = () => {
         homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
         mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />}
         onHomePress={() => console.log("Home pressed")}
-        onMapPress={() => console.log("Map pressed")}
+        onMapPress={navegarAlMapa}
       />
     </View>
   );
@@ -71,7 +88,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F8F8",
-    paddingTop: 0,
+    paddingTop: 20,
     paddingHorizontal: 16,
   },
   content: {
