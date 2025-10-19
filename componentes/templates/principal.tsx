@@ -38,7 +38,10 @@ const Principal = () => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header 
+        onBellPress={() => console.log("Notificaciones abiertas")}
+        onSettingsPress={() => console.log("Configuracion abierta")}
+      />
       <ScrollView contentContainerStyle={styles.content}>
         {cierres.map((cierre, index) => (
           <CierreAct

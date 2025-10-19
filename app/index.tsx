@@ -1,8 +1,8 @@
-import Header from "@/componentes/moleculas/header";
+import Principal from "@/componentes/templates/principal";
 
 export default function Index() {
   return (
-   <Header/>
+   <Principal/>
   );
 }
 
