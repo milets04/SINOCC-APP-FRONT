@@ -12,7 +12,17 @@ const Principal = () => {
     const navegarAlMapa = () => {
       router.push("/mapa");
     };
+    
+    /*Con error porque falta llamado de funciones en el header
 
+    const navegarANotif = () => {
+      router.push("/pantallaNotif");
+    };
+
+    const navegarAConf = () => {
+      router.push("/pantallaConf");
+    };
+    */
     const cierres = [
     {
       titulo: "Avenida Oquendo",
