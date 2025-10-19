@@ -2,20 +2,30 @@ import Header from '@/componentes/moleculas/header';
 import MenuInf from '@/componentes/moleculas/menuInf';
 import NotificationCard from '@/componentes/moleculas/notificacion';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function pantallaNotificaciones() {
-  const handleGoHome = () => {
-    console.log('Navegando a Home');
+  const router = useRouter();
+  
+  const navegarAHome = () => {
+      router.push("/");
   };
 
-  const handleGoMap = () => {
-    console.log('Navegando a Mapa');
+  const navegarAlMapa = () => {
+      router.push("/mapa");
   };
 
+  const navegarAConf = () => {
+    router.push("/pantallaConf");
+  };
+  
   return (
     <View style={styles.container}>
-      <Header />
+      <Header 
+          onBellPress={() => console.log("Ya nos encontramos en notificaciones")}
+          onSettingsPress={navegarAConf}
+      />
 
       <ScrollView 
         style={styles.scrollContent}
@@ -41,8 +51,8 @@ export default function pantallaNotificaciones() {
       <MenuInf
         homeIcon={<Ionicons name="home-outline" size={32} color="#146BF6" />}
         mapIcon={<Ionicons name="map-outline" size={32} color="#146BF6" />}
-        onHomePress={handleGoHome}
-        onMapPress={handleGoMap}
+        onHomePress={navegarAHome}
+        onMapPress={navegarAlMapa}
       />
     </View>
   );
@@ -52,6 +62,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+    paddingVertical: 20,
   },
   scrollContent: {
     flex: 1,

@@ -12,9 +12,7 @@ const Principal = () => {
     const navegarAlMapa = () => {
       router.push("/mapa");
     };
-    
-    /*Con error porque falta llamado de funciones en el header
-
+  
     const navegarANotif = () => {
       router.push("/pantallaNotif");
     };
@@ -22,7 +20,7 @@ const Principal = () => {
     const navegarAConf = () => {
       router.push("/pantallaConf");
     };
-    */
+
     const cierres = [
     {
       titulo: "Avenida Oquendo",
@@ -56,8 +54,8 @@ const Principal = () => {
   return (
     <View style={styles.container}>
       <Header 
-        onBellPress={() => console.log("Notificaciones abiertas")}
-        onSettingsPress={() => console.log("Configuracion abierta")}
+        onBellPress={navegarANotif}
+        onSettingsPress={navegarAConf}
       />
       <ScrollView contentContainerStyle={styles.content}>
         {cierres.map((cierre, index) => (

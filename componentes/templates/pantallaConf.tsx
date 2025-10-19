@@ -5,8 +5,10 @@ import SettingsItem from '@/componentes/moleculas/menuConf';
 import MenuInf from '@/componentes/moleculas/menuInf';
 import ZoneNotifications from '@/componentes/moleculas/menuZonas';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from 'react-native';
+
 export default function PantallaConfi() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
@@ -26,12 +28,18 @@ export default function PantallaConfi() {
     console.log(`Zona ${zoneId} cambió a: ${newValue}`);
   };
 
-  const handleGoHome = () => {
-    console.log('Navegando a Home');
+  const router = useRouter();
+
+  const navegarAHome = () => {
+      router.push("/");
   };
 
-  const handleGoMap = () => {
-    console.log('Navegando a Mapa');
+  const navegarAlMapa = () => {
+    router.push("/mapa");
+  };
+  
+  const navegarANotif = () => {
+    router.push("/pantallaNotif");
   };
 
   const handleIniciarSesion = () => {
@@ -40,8 +48,10 @@ export default function PantallaConfi() {
 
   return (
     <View style={styles.container}>
-      <Header />
-      
+      <Header 
+        onBellPress={navegarANotif}
+        onSettingsPress={() => console.log("Ya nos encontramos en configuraciones")}
+      />
 
         <View style={styles.titleContainer}>
           <TituloPestania>Centro de Configuración</TituloPestania>
@@ -87,8 +97,8 @@ export default function PantallaConfi() {
       <MenuInf
         homeIcon={<Ionicons name="home-outline" size={32} color="#146BF6" />}
         mapIcon={<Ionicons name="map-outline" size={32} color="#146BF6" />}
-        onHomePress={handleGoHome}
-        onMapPress={handleGoMap}
+        onHomePress={navegarAHome}
+        onMapPress={navegarAlMapa}
       />
     </View>
   );
@@ -98,6 +108,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F8F8',
+    paddingVertical: 20,
   },
   titleContainer: {
     paddingHorizontal: 16,
