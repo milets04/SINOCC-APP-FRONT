@@ -94,12 +94,14 @@ export default function PantallaConfi() {
           />
         </View>
       
-      <MenuInf
-        homeIcon={<Ionicons name="home-outline" size={32} color="#146BF6" />}
-        mapIcon={<Ionicons name="map-outline" size={32} color="#146BF6" />}
-        onHomePress={navegarAHome}
-        onMapPress={navegarAlMapa}
-      />
+      <View style={styles.footerContainer}>
+        <MenuInf
+          homeIcon={<Ionicons name="home-outline" size={32} color="#146BF6" />}
+          mapIcon={<Ionicons name="map-outline" size={32} color="#146BF6" />}
+          onHomePress={navegarAHome}
+          onMapPress={navegarAlMapa}
+        />
+      </View>
     </View>
   );
 }
@@ -125,5 +127,8 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 20,
     paddingHorizontal: 16,
+  },
+  footerContainer: {
+    paddingTop: 65,
   },
 });
