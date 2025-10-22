@@ -34,16 +34,16 @@ export default function PantallaConfi() {
       router.push("/");
   };
 
+  const navegarAIniSesion = () => {
+      router.push("/inicioSesion");
+  };
+
   const navegarAlMapa = () => {
     router.push("/mapa");
   };
   
   const navegarANotif = () => {
     router.push("/pantallaNotif");
-  };
-
-  const handleIniciarSesion = () => {
-    console.log('Iniciando sesión...');
   };
 
   return (
@@ -87,7 +87,7 @@ export default function PantallaConfi() {
         <View style={styles.buttonContainer}>
           <Boton
             texto="Iniciar Sesión"
-            onPress={handleIniciarSesion}
+            onPress={navegarAIniSesion}
             variante="primario"
             ancho="ajustado"
             tamaño="mediano"

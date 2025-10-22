@@ -9,9 +9,9 @@ import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 const IniSesion = () => {
+  
   return (
     <View style={styles.container}>
-      {/* Header fijado en la parte superior */}
       <View style={styles.header}>
         <HeaderSimple />
       </View>
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F8F8",
-    paddingTop: 0, 
+    paddingTop: 15, 
     paddingHorizontal: 16,
   },
   header: {
