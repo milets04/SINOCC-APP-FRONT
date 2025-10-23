@@ -1,14 +1,24 @@
+import { useRouter } from "expo-router";
 import React, { memo } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const SINOCC_PM = require("../../assets/images/SINOCC_PM.png");
 
 const HeaderSimple = () => {
+  const router = useRouter();
+  const irAlInicio = () => {
+    router.push("/");
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.leftSection}>
+      <TouchableOpacity 
+        onPress={irAlInicio} 
+        style={styles.leftSection} 
+        activeOpacity={0.7} 
+      >
         <Image source={SINOCC_PM} style={styles.logo} resizeMode="contain" />
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -25,7 +35,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#146BF6",
   },
-  leftSection: {
+  leftSection: { 
     flexDirection: "row",
     alignItems: "center",
     gap: 8,

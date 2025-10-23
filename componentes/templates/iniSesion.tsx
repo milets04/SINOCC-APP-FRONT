@@ -2,6 +2,7 @@ import Boton from "@/componentes/atomos/boton";
 import Input from "@/componentes/atomos/input";
 import Subtitulo from "@/componentes/atomos/subtitulo";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
+import { useRouter } from "expo-router";
 import React, { memo } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 
@@ -9,7 +10,15 @@ import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 const IniSesion = () => {
-  
+  const router = useRouter();
+
+  const inicioAdmin = () => {
+      router.push("/admin");
+  };
+
+  const inicioSuperAdmin = () => {
+      router.push("/superAdmin");
+  };
   return (
     <View style={styles.container}>
       <View style={styles.header}>
