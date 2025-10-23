@@ -19,6 +19,7 @@ const IniSesion = () => {
   const inicioSuperAdmin = () => {
       router.push("/superAdmin");
   };
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
