@@ -2,17 +2,14 @@ import Boton from "@/componentes/atomos/boton";
 import Input from "@/componentes/atomos/input";
 import Subtitulo from "@/componentes/atomos/subtitulo";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
-import Constants from 'expo-constants'; // ⬅️ CAMBIO 5: Agregado para detección automática de IP
-import React, { memo, useState } from "react"; // ⬅️ CAMBIO 1: Agregado useState
-import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
-
 import PrincAdmin from "@/componentes/templates/princAdmin";
 import PrincSuper from "@/componentes/templates/princSuper";
+import Constants from 'expo-constants';
+import React, { memo, useState } from "react";
+import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 
-// Obtener las dimensiones de la pantalla
 const { width, height } = Dimensions.get("window");
 
-// ⬅️ CAMBIO 6: Función para detectar la IP automáticamente
 const obtenerApiUrl = () => { 
   try {
     const host =
@@ -20,8 +17,8 @@ const obtenerApiUrl = () => {
       Constants?.manifest2?.extra?.expoClient?.hostUri;
 
     if (host) {
-      const ip = host.split(':')[0]; // toma la IP antes del puerto
-      const apiUrl = `http://${ip}:3000/api`; // Puerto del backend
+      const ip = host.split(':')[0]; 
+      const apiUrl = `http://${ip}:3000/api`;
       console.log('🌐 API URL detectada automáticamente:', apiUrl);
       return apiUrl;
     }
@@ -29,21 +26,18 @@ const obtenerApiUrl = () => {
     console.warn('⚠️ No se pudo detectar la IP local automáticamente.');
   }
 
-  // Fallback en caso de que no detecte la IP
   console.log('🌐 Usando localhost como fallback');
   return 'http://localhost:3000/api';
 };
 
-const API_URL = obtenerApiUrl(); // ⬅️ CAMBIO 7: URL del backend detectada automáticamente
+const API_URL = obtenerApiUrl(); 
 
 const IniSesion = () => {
-  // ⬅️ CAMBIO 8: Estados para manejar el formulario y la autenticación
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [cargando, setCargando] = useState(false);
   const [rolActual, setRolActual] = useState<string | null>(null);
 
-  // ⬅️ MANTIENE TUS FUNCIONES ORIGINALES (aunque ahora se ejecutan automáticamente)
   const renderPantallaPorRol = () => {
     if (rolActual === "superadmin") {
       return <PrincSuper />;
@@ -54,9 +48,7 @@ const IniSesion = () => {
     return null;
   };
 
-  // ⬅️ CAMBIO 11: Nueva función para manejar el inicio de sesión con el backend
   const handleIniciarSesion = async () => {
-    // Validaciones
     if (!correo.trim()) {
       Alert.alert("Validación", "Por favor ingresa tu correo electrónico");
       return;
@@ -73,7 +65,6 @@ const IniSesion = () => {
       console.log("🔄 Iniciando sesión...");
       console.log("📧 Correo:", correo);
 
-      // Hacer solicitud POST al backend
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
@@ -91,7 +82,6 @@ const IniSesion = () => {
 
       console.log("📨 Respuesta recibida:", JSON.stringify(datos, null, 2));
 
-      // Verificar si fue exitoso
       if (datos.exito && datos.datos) {
         const { rol, nombre, apellido, token } = datos.datos;
 
@@ -102,7 +92,6 @@ const IniSesion = () => {
 
         console.log("✅ Login exitoso con rol:", rol);
 
-        // Mostrar mensaje de bienvenida
         Alert.alert(
           "✅ Bienvenido",
           `Hola ${nombre || "Usuario"} ${apellido || ""}\nRol: ${rol}`,
@@ -110,18 +99,16 @@ const IniSesion = () => {
             {
               text: "Continuar",
               onPress: () => {
-                setRolActual(rol.toLowerCase()); // 🟢 CAMBIO NUEVO: establece el rol actual
+                setRolActual(rol.toLowerCase());
               },
             },
           ]
         );
 
-        // Limpiar formulario después de login exitoso
         setCorreo("");
         setContrasena("");
 
       } else {
-        // Error en las credenciales
         console.log("❌ Error:", datos.mensaje);
         Alert.alert(
           "❌ Error de Autenticación",
