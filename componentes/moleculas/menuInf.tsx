@@ -1,26 +1,38 @@
 import MenuIcon from '@/componentes/atomos/menu';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-
 interface MenuInfProps {
   homeIcon: React.ReactNode;
-  mapIcon: React.ReactNode;
   onHomePress: () => void;
-  onMapPress: () => void;
+  mapIcon?: React.ReactNode;
+  onMapPress?: () => void;
+  usersIcon?: React.ReactNode;
+  onUsersPress?: () => void;
 }
 
 const MenuInf: React.FC<MenuInfProps> = ({
   homeIcon,
-  mapIcon,
   onHomePress,
+  mapIcon,
   onMapPress,
+  usersIcon,
+  onUsersPress,
 }) => {
   return (
     <View style={styles.container}>
       <View style={styles.topBorder} />
       <View style={styles.menuContainer}>
+        
         <MenuIcon icon={homeIcon} onPress={onHomePress} />
-        <MenuIcon icon={mapIcon} onPress={onMapPress} />
+
+        {mapIcon && onMapPress && (
+          <MenuIcon icon={mapIcon} onPress={onMapPress} />
+        )}
+
+        {usersIcon && onUsersPress && (
+          <MenuIcon icon={usersIcon} onPress={onUsersPress} />
+        )}
+
       </View>
     </View>
   );
