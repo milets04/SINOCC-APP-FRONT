@@ -1,15 +1,15 @@
 import { SelectOption } from '@/componentes/atomos/selectFormulario';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
 import FormularioCierre, { FormularioCierreData, UbicacionData } from '@/componentes/moleculas/formularioCierre';
-import Header from '@/componentes/moleculas/header';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
+import HeaderSimple from '../moleculas/headerSimple';
 
 interface TemplateCrearCierreProps {
-  categorias: SelectOption[];
-  zonas: SelectOption[];
-  onSubmit: (data: FormularioCierreData) => void;
-  onAbrirMapa: () => void;
+  categorias?: SelectOption[];
+  zonas?: SelectOption[];
+  onSubmit?: (data: FormularioCierreData) => void;
+  onAbrirMapa?: () => void;
 }
 
 const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
@@ -27,43 +27,39 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
   };
 
   const handleSubmit = (data: FormularioCierreData) => {
-    // Validar que haya ubicaciones
     if (ubicacionesSeleccionadas.length === 0) {
       alert('Por favor agregue al menos una ubicación');
       return;
     }
 
-    // Agregar ubicaciones al formulario
     const dataCompleta = {
       ...data,
       ubicaciones: ubicacionesSeleccionadas,
     };
 
-    onSubmit(dataCompleta);
+    if (onSubmit) {
+      onSubmit(dataCompleta);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      <Header />
+      <HeaderSimple />
 
-      {/* Contenido con scroll */}
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Título */}
         <TituloPestania style={styles.titulo}>
           Crear cierre
         </TituloPestania>
 
         {/* Formulario */}
         <FormularioCierre
-          categorias={categorias}
-          zonas={zonas}
-          ubicacionesSeleccionadas={ubicacionesSeleccionadas}
-          onAbrirMapa={onAbrirMapa}
+          categorias={categorias ?? []}
+          zonas={zonas ?? []}
+          onAbrirMapa={onAbrirMapa ?? (() => {})}
           onEliminarUbicacion={handleEliminarUbicacion}
           onSubmit={handleSubmit}
           tituloBoton="Crear"

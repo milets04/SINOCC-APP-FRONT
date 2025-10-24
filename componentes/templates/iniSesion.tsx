@@ -135,7 +135,7 @@ const IniSesion = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <HeaderSimple />
+        <HeaderSimple onPressRoute="/" />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>

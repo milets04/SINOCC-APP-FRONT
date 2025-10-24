@@ -1,19 +1,25 @@
-import { useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 import React, { memo } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const SINOCC_PM = require("../../assets/images/SINOCC_PM.png");
 
-const HeaderSimple = () => {
+interface HeaderSimpleProps {
+  onPressRoute?: Href; 
+}
+
+const HeaderSimple: React.FC<HeaderSimpleProps> = ({ onPressRoute = "/" }) => {
+  
   const router = useRouter();
-  const irAlInicio = () => {
-    router.push("/");
+
+  const handlePress = () => {
+    router.push(onPressRoute);
   };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity 
-        onPress={irAlInicio} 
+        onPress={handlePress} 
         style={styles.leftSection} 
         activeOpacity={0.7} 
       >
