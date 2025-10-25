@@ -1,16 +1,16 @@
 import { SelectOption } from '@/componentes/atomos/selectFormulario';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
 import FormularioCierre, { FormularioCierreData, UbicacionData } from '@/componentes/moleculas/formularioCierre';
-import Header from '@/componentes/moleculas/header';
+import HeaderSimple from '@/componentes/moleculas/headerSimple';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 
 interface TemplateEditarCierreProps {
-  categorias: SelectOption[];
-  zonas: SelectOption[];
-  datosIniciales: FormularioCierreData;
-  onSubmit: (data: FormularioCierreData) => void;
-  onAbrirMapa: () => void;
+  categorias?: SelectOption[];
+  zonas?: SelectOption[];
+  datosIniciales?: FormularioCierreData;
+  onSubmit?: (data: FormularioCierreData) => void;
+  onAbrirMapa?: () => void;
 }
 
 const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
@@ -21,7 +21,7 @@ const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
   onAbrirMapa,
 }) => {
   const [ubicacionesSeleccionadas, setUbicacionesSeleccionadas] = useState<UbicacionData[]>(
-    datosIniciales.ubicaciones || []
+    datosIniciales?.ubicaciones || []
   );
 
   const handleEliminarUbicacion = (id: string | number) => {
@@ -31,43 +31,37 @@ const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
   };
 
   const handleSubmit = (data: FormularioCierreData) => {
-    // Validar que haya ubicaciones
     if (ubicacionesSeleccionadas.length === 0) {
       alert('Por favor agregue al menos una ubicación');
       return;
     }
-
-    // Agregar ubicaciones al formulario
     const dataCompleta = {
       ...data,
       ubicaciones: ubicacionesSeleccionadas,
     };
 
-    onSubmit(dataCompleta);
+    onSubmit?.(dataCompleta);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
-      <Header />
+      <HeaderSimple onPressRoute="/superAdmin"/>
 
-      {/* Contenido con scroll */}
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Título */}
         <TituloPestania style={styles.titulo}>
           Datos del cierre
         </TituloPestania>
 
-        {/* Formulario con datos iniciales */}
         <FormularioCierre
-          categorias={categorias}
-          zonas={zonas}
+          categorias={categorias ?? []}
+          zonas={zonas ?? []}
           ubicacionesSeleccionadas={ubicacionesSeleccionadas}
-          onAbrirMapa={onAbrirMapa}
+          onAbrirMapa={onAbrirMapa ?? (() => {})}
           onEliminarUbicacion={handleEliminarUbicacion}
           onSubmit={handleSubmit}
           tituloBoton="Guardar"

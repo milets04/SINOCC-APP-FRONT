@@ -16,6 +16,10 @@ const princSuper= () => {
     router.push("/crearCierre");
   };
 
+  const navegarAEditarCierre = () => {
+    router.push("/crearCierre");
+  };
+
   const cierres = [
     {
       titulo: "Cierre en Av. América",
@@ -34,7 +38,7 @@ const princSuper= () => {
             key={index}
             titulo={cierre.titulo}
             subtitulo={cierre.subtitulo}
-            onPressEditar={() => console.log("Editar cierre", cierre.titulo)}
+            onPressEditar={navegarAEditarCierre}
             onPressEliminar={() => console.log("Eliminar cierre", cierre.titulo)}
             style={styles.card}
           />

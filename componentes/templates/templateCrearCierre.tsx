@@ -44,7 +44,7 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <HeaderSimple />
+      <HeaderSimple onPressRoute="/superAdmin"/>
 
       <ScrollView 
         style={styles.scrollView}
@@ -55,7 +55,6 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
           Crear cierre
         </TituloPestania>
 
-        {/* Formulario */}
         <FormularioCierre
           categorias={categorias ?? []}
           zonas={zonas ?? []}
