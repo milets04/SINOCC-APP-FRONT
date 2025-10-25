@@ -129,6 +129,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   footerContainer: {
-    paddingTop: 120,
+    paddingTop: 55,
   },
 });

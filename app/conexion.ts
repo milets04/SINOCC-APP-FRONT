@@ -1,0 +1,276 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import * as Device from 'expo-device';
+
+const obtenerApiUrl = () => {
+  try {
+    const host =
+      Constants?.expoConfig?.hostUri ||
+      Constants?.manifest2?.extra?.expoClient?.hostUri;
+
+    if (host) {
+      const ip = host.split(':')[0]; // toma la IP antes del puerto
+      return `http://${ip}:3000/api`; // ⚠️ cambia el puerto si tu backend usa otro
+    }
+  } catch (error) {
+    console.warn('No se pudo detectar la IP local automáticamente.');
+  }
+
+  // Fallback en caso de que no detecte la IP
+  return 'http://localhost:3000/api';
+};
+
+const API_URL = obtenerApiUrl();
+
+console.log('🌐 API detectada automáticamente:', API_URL);
+interface RespuestaLogin {
+  exito: boolean;
+  mensaje: string;
+  datos?: {
+    id: number;
+    nombre: string;
+    apellido: string;
+    correo: string;
+    rol: string;
+    token: string;
+  };
+  errores?: any[];
+}
+
+interface RespuestaPerfil {
+  exito: boolean;
+  mensaje: string;
+  datos?: {
+    id: number;
+    nombre: string;
+    apellido: string;
+    correo: string;
+    rol: string;
+  };
+}
+
+class AutenticacionServicio {
+  /**
+   * Inicia sesión con correo y contraseña
+   */
+  async login(correo: string, contrasena: string): Promise<RespuestaLogin> {
+    try {
+      console.log('🔄 Intentando conexión con:', API_URL);
+      
+      const tokenDispositivo = await this.obtenerTokenDispositivo();
+      const plataforma = Device.osName?.toLowerCase() || 'android';
+
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          correo,
+          contrasena,
+          tokenDispositivo,
+          plataforma,
+        }),
+      });
+
+      const datos: RespuestaLogin = await response.json();
+
+      console.log('📨 Respuesta del backend:', JSON.stringify(datos, null, 2));
+
+      if (!response.ok) {
+        return {
+          exito: false,
+          mensaje: datos.mensaje || 'Error en el inicio de sesión',
+          errores: datos.errores,
+        };
+      }
+
+      // Guardar token y datos del usuario
+      if (datos.datos?.token) {
+        await AsyncStorage.setItem('token', datos.datos.token);
+        await AsyncStorage.setItem('usuario', JSON.stringify(datos.datos));
+        console.log('✅ Token guardado correctamente');
+      }
+
+      return datos;
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      return {
+        exito: false,
+        mensaje: error.message || 'Error de conexión con el servidor',
+      };
+    }
+  }
+
+  /**
+   * Registra un nuevo usuario común
+   */
+  async registro(
+    nombre: string,
+    apellido: string
+  ): Promise<RespuestaLogin> {
+    try {
+      console.log('🔄 Registrando nuevo usuario...');
+      
+      const tokenDispositivo = await this.obtenerTokenDispositivo();
+      const plataforma = Device.osName?.toLowerCase() || 'android';
+
+      const response = await fetch(`${API_URL}/auth/registro`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre,
+          apellido,
+          tokenDispositivo,
+          plataforma,
+        }),
+      });
+
+      const datos: RespuestaLogin = await response.json();
+
+      console.log('📨 Respuesta del backend:', JSON.stringify(datos, null, 2));
+
+      if (!response.ok) {
+        return {
+          exito: false,
+          mensaje: datos.mensaje || 'Error en el registro',
+          errores: datos.errores,
+        };
+      }
+
+      // Guardar token y datos del usuario
+      if (datos.datos?.token) {
+        await AsyncStorage.setItem('token', datos.datos.token);
+        await AsyncStorage.setItem('usuario', JSON.stringify(datos.datos));
+      }
+
+      return datos;
+    } catch (error: any) {
+      console.error('❌ Error en registro:', error);
+      return {
+        exito: false,
+        mensaje: error.message || 'Error de conexión con el servidor',
+      };
+    }
+  }
+
+  /**
+   * Obtiene el perfil del usuario autenticado
+   */
+  async obtenerPerfil(): Promise<RespuestaPerfil> {
+    try {
+      const token = await AsyncStorage.getItem('token');
+
+      if (!token) {
+        return {
+          exito: false,
+          mensaje: 'No hay sesión activa',
+        };
+      }
+
+      const response = await fetch(`${API_URL}/auth/perfil`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const datos: RespuestaPerfil = await response.json();
+
+      if (!response.ok) {
+        return {
+          exito: false,
+          mensaje: datos.mensaje || 'Error al obtener perfil',
+        };
+      }
+
+      return datos;
+    } catch (error: any) {
+      console.error('❌ Error en obtenerPerfil:', error);
+      return {
+        exito: false,
+        mensaje: error.message || 'Error de conexión con el servidor',
+      };
+    }
+  }
+
+  /**
+   * Cierra la sesión actual
+   */
+  async cerrarSesion(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('usuario');
+      console.log('✅ Sesión cerrada');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+    }
+  }
+
+  /**
+   * Verifica si hay una sesión activa
+   */
+  async estaAutenticado(): Promise<boolean> {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      return !!token;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Obtiene el token almacenado
+   */
+  async obtenerToken(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem('token');
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Obtiene los datos del usuario almacenados
+   */
+  async obtenerUsuario(): Promise<any> {
+    try {
+      const usuarioJSON = await AsyncStorage.getItem('usuario');
+      return usuarioJSON ? JSON.parse(usuarioJSON) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Genera o obtiene un token de dispositivo único
+   */
+  private async obtenerTokenDispositivo(): Promise<string> {
+    try {
+      let tokenGuardado = await AsyncStorage.getItem('tokenDispositivo');
+      
+      if (!tokenGuardado) {
+        // Generar un token único si no existe
+        tokenGuardado = `ExponentPushToken[${this.generarIdUnico()}]`;
+        await AsyncStorage.setItem('tokenDispositivo', tokenGuardado);
+      }
+      
+      return tokenGuardado;
+    } catch (error) {
+      return `ExponentPushToken[default]`;
+    }
+  }
+
+  /**
+   * Genera un ID único para el dispositivo
+   */
+  private generarIdUnico(): string {
+    return Math.random().toString(36).substring(2, 15) + 
+           Math.random().toString(36).substring(2, 15);
+  }
+}
+
+export default new AutenticacionServicio();

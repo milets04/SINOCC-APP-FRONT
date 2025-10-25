@@ -3,15 +3,26 @@ import TituloPestania from "@/componentes/atomos/tituloPestania";
 import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { memo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import MenuInf from "../moleculas/menuInf";
 
 const princSuper= () => {
-  //ejm para ver y probar scroll
+
+  const router = useRouter();
+
+  const navegarACrearCierre = () => {
+    router.push("/crearCierre");
+  };
+
+  const navegarAEditarCierre = () => {
+    router.push("/crearCierre");
+  };
+
   const cierres = [
     {
-      titulo: "Mel tonta",
+      titulo: "Cierre en Av. América",
       subtitulo: ["Zona", "Duración: 2 días", "Motivo: Amago de tuberías"],
     },
   ];
@@ -27,7 +38,7 @@ const princSuper= () => {
             key={index}
             titulo={cierre.titulo}
             subtitulo={cierre.subtitulo}
-            onPressEditar={() => console.log("Editar cierre", cierre.titulo)}
+            onPressEditar={navegarAEditarCierre}
             onPressEliminar={() => console.log("Eliminar cierre", cierre.titulo)}
             style={styles.card}
           />
@@ -35,7 +46,7 @@ const princSuper= () => {
         
         <Boton
           texto="Crear nuevo cierre"
-          onPress={() => console.log("Crear nuevo cierre")}
+          onPress={navegarACrearCierre}
           variante="primario"
           tamaño="grande"
           ancho="completo"
@@ -56,13 +67,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F8F8",
-    paddingTop: 0,
+    paddingTop: 25,
     paddingHorizontal: 16,
   },
   content: {
     alignItems: "center",
     paddingBottom: 50,
-    paddingTop: 20,
+    paddingTop: 10,
   },
   title: {
     marginVertical: 20,
