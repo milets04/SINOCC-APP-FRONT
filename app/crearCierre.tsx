@@ -55,18 +55,28 @@ export default function PantallaCrearCierre() {
             'Authorization': `Bearer ${token}`, 
           },
         });
+        
+        const responseData = await response.json();
 
-        const zonasData: ZonaAPI[] = await response.json();
-        
-        const opcionesFormateadas = zonasData.map((zona) => ({
-          label: zona.nombreZona,
-          value: zona.id,
-        }));
-        
-        setZonasOptions(opcionesFormateadas);
-      } catch (error) {
+        console.log("Respuesta completa de /zonas:", JSON.stringify(responseData, null, 2));
+        if (response.ok && responseData.datos && Array.isArray(responseData.datos)) {
+          
+          const zonasData: ZonaAPI[] = responseData.datos; 
+          
+          const opcionesFormateadas = zonasData.map((zona) => ({
+            label: zona.nombreZona,
+            value: zona.id,
+          }));
+          
+          setZonasOptions(opcionesFormateadas);
+
+        } else {
+          throw new Error(responseData.mensaje || 'Respuesta inesperada del servidor');
+        }
+
+      } catch (error: any) {
         console.error("Error al cargar las zonas:", error);
-        Alert.alert("Error", "No se pudieron cargar las zonas.");
+        Alert.alert("Error", `No se pudieron cargar las zonas: ${error.message}`);
       } finally {
         setIsLoading(false);
       }
