@@ -30,13 +30,10 @@ const CalendarioPersonalizado: React.FC<CalendarioPersonalizadoProps> = ({
     const startingDayOfWeek = firstDay.getDay();
 
     const days: (number | null)[] = [];
-
-    // Agregar días vacíos antes del primer día del mes
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
 
-    // Agregar todos los días del mes
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day);
     }
