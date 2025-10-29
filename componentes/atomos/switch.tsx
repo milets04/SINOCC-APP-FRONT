@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   thumb: {
     position: 'absolute',
-    shadowColor: '#be4343ff',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
