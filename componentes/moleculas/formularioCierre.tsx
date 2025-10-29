@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Boton from '../atomos/boton';
 import CalendarioPersonalizado from '../atomos/calendario';
 import DescripcionTitulo from '../atomos/descripcionTitulo';
@@ -80,17 +80,10 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       Alert.alert('Error', 'Por favor complete todos los campos');
       return;
     }
-
-    if (ubicacionesSeleccionadas.length === 0) {
-      Alert.alert('Error', 'Por favor agregue al menos una ubicación');
-      return;
-    }
-
     const dataCompleta = {
       ...formData,
       ubicaciones: ubicacionesSeleccionadas,
     };
-
     onSubmit(dataCompleta);
   };
 
@@ -123,37 +116,49 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       />
 
       <View style={styles.filaFechas}>
-        <Input
-          width={152}
-          height={47}
-          placeholder="Fecha inicio"
-          value={formData.fechaInicio}
-          editable={false}
-          onPressIn={() => setShowInicioPicker(true)}
-        />
-        <Input
-          width={152}
-          height={47}
-          placeholder="Fecha fin"
-          value={formData.fechaFin}
-          editable={false}
-          onPressIn={() => {
+        <Pressable
+          style={styles.fakeInput} 
+          onPress={() => {
+            console.log('🔵 CLICK en fecha inicio');
+            setShowInicioPicker(true);
+          }}
+        >
+          <Text 
+            style={[
+              styles.fakeInputText,
+              formData.fechaInicio ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder
+            ]}
+          >
+            {formData.fechaInicio || "Fecha inicio"}
+          </Text>
+        </Pressable>
+        <Pressable
+          style={styles.fakeInput} 
+          onPress={() => {
             if (!formData.fechaInicio) {
               Alert.alert("Aviso", "Por favor, seleccione primero una fecha de inicio.");
             } else {
               setShowFinPicker(true);
             }
           }}
-        />
+        >
+          <Text 
+            style={[
+              styles.fakeInputText,
+              formData.fechaFin ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder
+            ]}
+          >
+            {formData.fechaFin || "Fecha fin"}
+          </Text>
+        </Pressable>
       </View>
 
-      {/* Calendarios personalizados */}
       <CalendarioPersonalizado
         visible={showInicioPicker}
         onClose={() => setShowInicioPicker(false)}
         onSelectDate={handleSelectFechaInicio}
         selectedDate={formData.fechaInicio}
-        minimumDate={new Date()}
+        minimumDate={new Date()} // ✅ Esto está bien
         title="Seleccionar fecha de inicio"
       />
 
@@ -178,39 +183,35 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       />
 
       <View style={styles.seccionUbicacion}>
-        <View style={styles.headerUbicacion}>
-          <DescripcionTitulo texto="Agregar ubicación" />
-          
-          <Boton
-            texto="ABRIR MAPA"
-            onPress={onAbrirMapa}
-            variante="primario"
-            estilo={styles.botonMapa}
-            estiloTexto={styles.textoBotonMapa}
-          />
-        </View>
-
-        <ScrollView 
-          style={styles.contenedorUbicaciones}
-          contentContainerStyle={styles.listaUbicaciones}
-          showsVerticalScrollIndicator={true}
-        >
-          {ubicacionesSeleccionadas.length === 0 ? (
-            <Text style={styles.textoVacio}>
-              No hay ubicaciones agregadas
-            </Text>
-          ) : (
-            ubicacionesSeleccionadas.map((ubicacion) => (
-              <ItemUbicacion
-                key={ubicacion.id}
-                direccion={ubicacion.direccion}
-                onDelete={() => onEliminarUbicacion && onEliminarUbicacion(ubicacion.id)}
-              />
-            ))
-          )}
-        </ScrollView>
-      </View>
-
+         <View style={styles.headerUbicacion}>
+           <DescripcionTitulo texto="Agregar ubicación" />
+           <Boton
+             texto="ABRIR MAPA"
+             onPress={onAbrirMapa}
+             variante="primario"
+             estilo={styles.botonMapa}
+             estiloTexto={styles.textoBotonMapa}
+           />
+         </View>
+         <ScrollView 
+           style={styles.contenedorUbicaciones}
+           contentContainerStyle={styles.listaUbicaciones}
+         >
+           {ubicacionesSeleccionadas.length === 0 ? (
+             <Text style={styles.textoVacio}>
+               No hay ubicaciones agregadas
+             </Text>
+           ) : (
+             ubicacionesSeleccionadas.map((ubicacion) => (
+               <ItemUbicacion
+                 key={ubicacion.id}
+                 direccion={ubicacion.direccion}
+                 onDelete={() => onEliminarUbicacion && onEliminarUbicacion(ubicacion.id)}
+               />
+             ))
+           )}
+         </ScrollView>
+       </View>
       <View style={styles.botonContainer}>
         <Boton
           texto={tituloBoton}
@@ -235,6 +236,27 @@ const styles = StyleSheet.create({
     width: 310,
     gap: 6,
   },
+  
+  fakeInput: {
+    width: 152,
+    height: 47,
+    backgroundColor: '#FFFFFF', 
+    borderWidth: 1,
+    borderColor: '#E0E0E0', 
+    borderRadius: 8, 
+    paddingHorizontal: 15, 
+    justifyContent: 'center', 
+  },
+  fakeInputText: {
+    fontSize: 16, 
+  },
+  fakeInputTextPlaceholder: {
+    color: '#9E9E9E', 
+  },
+  fakeInputTextSelected: {
+    color: '#000000', 
+  },
+
   motivoInput: {
     paddingTop: 12,
   },

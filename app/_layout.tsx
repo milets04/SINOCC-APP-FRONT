@@ -1,4 +1,4 @@
-import { AuthProvider } from '@/contexto/autenticacion'; // 1. Importa
+import { AuthProvider } from '@/contexto/autenticacion';
 import { UbicacionesProvider } from '@/contexto/ubicaciones';
 import { Slot } from "expo-router";
 import { View } from "react-native";
