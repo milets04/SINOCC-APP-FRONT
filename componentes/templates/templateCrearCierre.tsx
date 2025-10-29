@@ -1,43 +1,38 @@
 import { SelectOption } from '@/componentes/atomos/selectFormulario';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
-import FormularioCierre, { FormularioCierreData } from '@/componentes/moleculas/formularioCierre';
+import FormularioCierre, { FormularioCierreData, UbicacionData } from '@/componentes/moleculas/formularioCierre';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 import HeaderSimple from '../moleculas/headerSimple';
-
-// 1. Importa el hook del Contexto y el router
-import { useUbicaciones } from '@/contexto/ubicaciones';
-import { useRouter } from 'expo-router';
-
-// (La interfaz que recibes puede simplificarse, pero la dejamos por ahora)
 interface TemplateCrearCierreProps {
   categorias?: SelectOption[];
   zonas?: SelectOption[];
   onSubmit?: (data: FormularioCierreData) => void;
-  // onAbrirMapa?: () => void; // Ya no necesitamos recibir esto
+  ubicaciones: UbicacionData[]; 
+  setUbicaciones: React.Dispatch<React.SetStateAction<UbicacionData[]>>;
 }
 
 const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
   categorias,
   zonas,
   onSubmit,
+  ubicaciones, 
+  setUbicaciones, 
 }) => {
-  const router = useRouter(); // 2. Hook de navegación
+  const router = useRouter(); 
   
-  // 3. Obtenemos el estado y el setter del Contexto
-  // (Renombramos 'ubicaciones' a 'ubicacionesSeleccionadas' para que coincida con tu código)
-  const { ubicaciones: ubicacionesSeleccionadas, setUbicaciones } = useUbicaciones();
-
-  // 4. Tu lógica de eliminar ahora modifica el Contexto
+  //¡ELIMINADO! Ya no usamos el hook aquí
+  // const { ubicaciones: ubicacionesSeleccionadas, setUbicaciones } = useUbicaciones();
+  const ubicacionesSeleccionadas = ubicaciones;
   const handleEliminarUbicacion = (id: string | number) => {
     setUbicaciones(
       ubicacionesSeleccionadas.filter((ub) => ub.id !== id)
     );
   };
 
-  // 5. Esta es la función que pasaremos al formulario
   const handleAbrirMapa = () => {
-    router.push('/seleccionarMapa'); // Navega a la nueva pantalla
+    router.push('/seleccionarMapa'); 
   };
 
   const handleSubmit = (data: FormularioCierreData) => {
@@ -45,8 +40,6 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
       alert('Por favor agregue al menos una ubicación');
       return;
     }
-
-    // Tu lógica de submit sigue igual
     const dataCompleta = {
       ...data,
       ubicaciones: ubicacionesSeleccionadas,
@@ -73,9 +66,9 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
         <FormularioCierre
           categorias={categorias ?? []}
           zonas={zonas ?? []}
-          onAbrirMapa={handleAbrirMapa} // 6. Pasamos la nueva función de navegación
-          onEliminarUbicacion={handleEliminarUbicacion} // Pasa la función de eliminar (actualiza el contexto)
-          ubicacionesSeleccionadas={ubicacionesSeleccionadas} // 7. Pasa las ubicaciones del contexto
+          onAbrirMapa={handleAbrirMapa} 
+          onEliminarUbicacion={handleEliminarUbicacion} 
+          ubicacionesSeleccionadas={ubicacionesSeleccionadas} 
           onSubmit={handleSubmit}
           tituloBoton="Crear"
         />
@@ -84,7 +77,6 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
   );
 };
 
-// ... tus estilos siguen igual
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -92,7 +84,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F5F5FS',
   },
   scrollContent: {
     paddingHorizontal: 20,

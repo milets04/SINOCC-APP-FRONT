@@ -2,6 +2,7 @@ import { SelectOption } from '@/componentes/atomos/selectFormulario';
 import { FormularioCierreData } from '@/componentes/moleculas/formularioCierre';
 import TemplateCrearCierre from '@/componentes/templates/templateCrearCierre';
 import { useAuth } from '@/contexto/autenticacion';
+import { useUbicaciones } from '@/contexto/ubicaciones';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -44,6 +45,7 @@ export default function PantallaCrearCierre() {
   const { token } = useAuth(); 
   const [zonasOptions, setZonasOptions] = useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { ubicaciones: ubicacionesSeleccionadas, setUbicaciones } = useUbicaciones();
 
   useEffect(() => {
     const fetchZonas = async () => {
@@ -118,6 +120,8 @@ export default function PantallaCrearCierre() {
       }
 
       Alert.alert('Éxito', '¡Cierre creado con éxito!');
+      setUbicaciones([]);
+      
       router.back();
 
     } catch (error: any) {
@@ -135,6 +139,8 @@ export default function PantallaCrearCierre() {
       categorias={categoriasOptions}
       zonas={zonasOptions}
       onSubmit={handleFormSubmit}
+      ubicaciones={ubicacionesSeleccionadas}
+      setUbicaciones={setUbicaciones}
     />
   );
 }
