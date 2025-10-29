@@ -1,49 +1,52 @@
 import Boton from '@/componentes/atomos/boton';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
 import CardAdministrador, { CardAdministradorProps } from '@/componentes/moleculas/cardAdministrador';
-import Header from '@/componentes/moleculas/header';
+import HeaderSimple from '@/componentes/moleculas/headerSimple';
 import MenuInf from '@/componentes/moleculas/menuInf';
+import { useRouter } from "expo-router";
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 interface TemplateGestionAdministradoresProps {
-  administradores: CardAdministradorProps[];
-  onEditAdmin: (nombre: string) => void;
-  onDeleteAdmin: (nombre: string) => void;
-  onRegistrarNuevo: () => void;
+  administradores?: CardAdministradorProps[];
+  onEditAdmin?: (nombre: string) => void;
+  onDeleteAdmin?: (nombre: string) => void;
+  onRegistrarNuevo?: () => void;
   homeIcon: React.ReactNode;
-  mapIcon: React.ReactNode;
-  onHomePress: () => void;
-  onMapPress: () => void;
+  usersIcon: React.ReactNode;
 }
 
 const TemplateGestionAdministradores: React.FC<TemplateGestionAdministradoresProps> = ({
-  administradores,
+  administradores = [],
   onEditAdmin,
   onDeleteAdmin,
   onRegistrarNuevo,
   homeIcon,
-  mapIcon,
-  onHomePress,
-  onMapPress,
+  usersIcon,
 }) => {
+  const router = useRouter();
+  
+  const navegarAPrincipal = () => {
+    router.push("/superAdmin");
+  };
+
+  const navegarACrearAdmin = () => {
+    router.push("/crearAdmin");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
-      <Header />
+      <HeaderSimple onPressRoute="/superAdmin"/>
 
-      {/* Contenido con scroll */}
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Título */}
         <TituloPestania style={styles.titulo}>
           Administradores Activos
         </TituloPestania>
 
-        {/* Lista de administradores */}
         <View style={styles.listaAdmins}>
           {administradores.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -59,30 +62,28 @@ const TemplateGestionAdministradores: React.FC<TemplateGestionAdministradoresPro
                 correo={admin.correo}
                 usuario={admin.usuario}
                 fotoUri={admin.fotoUri}
-                onEdit={() => onEditAdmin(admin.nombre)}
-                onDelete={() => onDeleteAdmin(admin.nombre)}
+                onEdit={() => onEditAdmin?.(admin.nombre)}
+                onDelete={() => onDeleteAdmin?.(admin.nombre)}
               />
             ))
           )}
         </View>
 
-        {/* Botón Registrar nuevo administrador */}
         <View style={styles.botonContainer}>
           <Boton
             texto="Registrar nuevo administrador"
-            onPress={onRegistrarNuevo}
+            onPress={onRegistrarNuevo || navegarACrearAdmin}
             variante="primario"
             estilo={styles.botonRegistrar}
           />
         </View>
       </ScrollView>
 
-      {/* Menú Inferior */}
       <MenuInf
         homeIcon={homeIcon}
-        mapIcon={mapIcon}
-        onHomePress={onHomePress}
-        onMapPress={onMapPress}
+        usersIcon={usersIcon}
+        onHomePress={navegarAPrincipal}
+        onUsersPress={() => console.log('Ya estás en gestión de admins')}
       />
     </SafeAreaView>
   );

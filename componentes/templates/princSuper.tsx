@@ -17,6 +17,7 @@ interface Cierre {
 
 const PrincSuper = () => {
   const router = useRouter();
+  
 
   // Estado para manejar la lista de cierres
   const [cierres, setCierres] = useState<Cierre[]>([
@@ -38,6 +39,10 @@ const PrincSuper = () => {
   const navegarAEditarCierre = () => {
     router.push("/editarCierre");
   };
+  const navegarAGestionAdmins = () => {
+    router.push("/gestionAdmins");
+  };
+
 
   // Función para mostrar el modal de confirmación
   const handleMostrarModalEliminar = (cierre: Cierre) => {
@@ -106,9 +111,9 @@ const PrincSuper = () => {
       {/* Menú Inferior */}
       <MenuInf
         homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
-        mapIcon={<Ionicons name="people-outline" size={28} color="#146BF6" />}
+        usersIcon={<Ionicons name="people-outline" size={28} color="#146BF6" />}
         onHomePress={() => console.log("Home pressed")}
-        onMapPress={() => console.log("Administradores pressed")}
+        onUsersPress={navegarAGestionAdmins}
       />
 
       {/* Modal de Confirmación */}

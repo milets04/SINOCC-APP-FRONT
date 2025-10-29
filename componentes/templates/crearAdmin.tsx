@@ -3,7 +3,8 @@ import Input from '@/componentes/atomos/input';
 import SubirFoto from '@/componentes/atomos/subirFoto';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
 import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import HeaderSimple from '../moleculas/headerSimple';
 
 const SINOCC_PM = require('../../assets/images/SINOCC_PM.png');
 
@@ -61,13 +62,7 @@ export default function CrearAdmin() {
   return (
     <View style={styles.container}>
 
-      <View style={styles.headerContainer}>
-        <Image 
-          source={SINOCC_PM} 
-          style={styles.logo} 
-          resizeMode="contain" 
-        />
-      </View>
+      <HeaderSimple onPressRoute="/gestionAdmins"/>
 
       <ScrollView 
         style={styles.scrollContent}
@@ -136,14 +131,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
-  },
-  headerContainer: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    alignItems: 'flex-start',
-    borderBottomWidth: 1,
-    borderBottomColor: '#146BF6',
+    paddingTop: 25,
   },
   logo: {
     width: 130,
