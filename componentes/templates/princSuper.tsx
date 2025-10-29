@@ -17,7 +17,7 @@ const princSuper= () => {
   };
 
   const navegarAEditarCierre = () => {
-    router.push("/crearCierre");
+    router.push("/editarCierre");
   };
 
   const cierres = [
