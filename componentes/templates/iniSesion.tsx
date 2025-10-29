@@ -4,6 +4,7 @@ import Subtitulo from "@/componentes/atomos/subtitulo";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import PrincAdmin from "@/componentes/templates/princAdmin";
 import PrincSuper from "@/componentes/templates/princSuper";
+import { useAuth } from "@/contexto/autenticacion";
 import Constants from 'expo-constants';
 import React, { memo, useState } from "react";
 import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -36,7 +37,8 @@ const IniSesion = () => {
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [rolActual, setRolActual] = useState<string | null>(null);
+  const { login } = useAuth();
+  const { rol: rolActual } = useAuth();
 
   const renderPantallaPorRol = () => {
     if (rolActual === "superadmin") {
@@ -89,6 +91,7 @@ const IniSesion = () => {
           Alert.alert("Error", "El servidor no devolvió un rol de usuario.");
           return;
         }
+        await login(token, rol.toLowerCase());
 
         console.log("✅ Login exitoso con rol:", rol);
 
@@ -99,7 +102,6 @@ const IniSesion = () => {
             {
               text: "Continuar",
               onPress: () => {
-                setRolActual(rol.toLowerCase());
               },
             },
           ]

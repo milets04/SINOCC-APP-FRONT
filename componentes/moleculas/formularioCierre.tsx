@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Boton from '../atomos/boton';
+import CalendarioPersonalizado from '../atomos/calendario';
 import DescripcionTitulo from '../atomos/descripcionTitulo';
 import Input from '../atomos/input';
 import Select, { SelectOption } from '../atomos/selectFormulario';
@@ -54,16 +55,34 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     ubicaciones: datosIniciales?.ubicaciones || [],
   });
 
+  const [showInicioPicker, setShowInicioPicker] = useState(false);
+  const [showFinPicker, setShowFinPicker] = useState(false);
+
+  const handleSelectFechaInicio = (date: string) => {
+    if (formData.fechaFin && new Date(date) > new Date(formData.fechaFin)) {
+      setFormData({ ...formData, fechaInicio: date, fechaFin: '' });
+    } else {
+      setFormData({ ...formData, fechaInicio: date });
+    }
+  };
+
+  const handleSelectFechaFin = (date: string) => {
+    if (formData.fechaInicio && new Date(date) < new Date(formData.fechaInicio)) {
+      Alert.alert("Error", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+      return;
+    }
+    setFormData({ ...formData, fechaFin: date });
+  };
+
   const handleSubmit = () => {
-    // Validación básica
     if (!formData.categoria || !formData.lugarCierre || !formData.zona || 
         !formData.fechaInicio || !formData.fechaFin || !formData.motivo) {
-      alert('Por favor complete todos los campos');
+      Alert.alert('Error', 'Por favor complete todos los campos');
       return;
     }
 
     if (ubicacionesSeleccionadas.length === 0) {
-      alert('Por favor agregue al menos una ubicación');
+      Alert.alert('Error', 'Por favor agregue al menos una ubicación');
       return;
     }
 
@@ -77,7 +96,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Categoría */}
       <Select
         width={310}
         height={47}
@@ -86,8 +104,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         value={formData.categoria}
         onValueChange={(value) => setFormData({ ...formData, categoria: value })}
       />
-
-      {/* Lugar del cierre */}
+      
       <Input
         width={310}
         height={47}
@@ -96,7 +113,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         onChangeText={(text) => setFormData({ ...formData, lugarCierre: text })}
       />
 
-      {/* Zona */}
       <Select
         width={310}
         height={47}
@@ -106,26 +122,50 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         onValueChange={(value) => setFormData({ ...formData, zona: value })}
       />
 
-      {/* Fila: Fecha Inicio y Fecha Fin */}
       <View style={styles.filaFechas}>
         <Input
           width={152}
           height={47}
           placeholder="Fecha inicio"
           value={formData.fechaInicio}
-          onChangeText={(text) => setFormData({ ...formData, fechaInicio: text })}
+          editable={false}
+          onPressIn={() => setShowInicioPicker(true)}
         />
-        
         <Input
           width={152}
           height={47}
           placeholder="Fecha fin"
           value={formData.fechaFin}
-          onChangeText={(text) => setFormData({ ...formData, fechaFin: text })}
+          editable={false}
+          onPressIn={() => {
+            if (!formData.fechaInicio) {
+              Alert.alert("Aviso", "Por favor, seleccione primero una fecha de inicio.");
+            } else {
+              setShowFinPicker(true);
+            }
+          }}
         />
       </View>
 
-      {/* Motivo */}
+      {/* Calendarios personalizados */}
+      <CalendarioPersonalizado
+        visible={showInicioPicker}
+        onClose={() => setShowInicioPicker(false)}
+        onSelectDate={handleSelectFechaInicio}
+        selectedDate={formData.fechaInicio}
+        minimumDate={new Date()}
+        title="Seleccionar fecha de inicio"
+      />
+
+      <CalendarioPersonalizado
+        visible={showFinPicker}
+        onClose={() => setShowFinPicker(false)}
+        onSelectDate={handleSelectFechaFin}
+        selectedDate={formData.fechaFin}
+        minimumDate={formData.fechaInicio ? new Date(formData.fechaInicio) : new Date()}
+        title="Seleccionar fecha de fin"
+      />
+
       <Input
         width={310}
         height={77}
@@ -137,7 +177,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         style={styles.motivoInput}
       />
 
-      {/* Sección: Agregar ubicación */}
       <View style={styles.seccionUbicacion}>
         <View style={styles.headerUbicacion}>
           <DescripcionTitulo texto="Agregar ubicación" />
@@ -151,7 +190,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
           />
         </View>
 
-        {/* Lista de ubicaciones con scroll */}
         <ScrollView 
           style={styles.contenedorUbicaciones}
           contentContainerStyle={styles.listaUbicaciones}
@@ -173,7 +211,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         </ScrollView>
       </View>
 
-      {/* Botón Crear/Guardar */}
       <View style={styles.botonContainer}>
         <Boton
           texto={tituloBoton}

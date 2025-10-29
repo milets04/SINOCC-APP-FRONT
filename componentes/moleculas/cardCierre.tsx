@@ -6,7 +6,7 @@ import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native"
 
 export type CardCierreProps = {
   titulo: string;
-  subtitulo: string[]; //descripcion 
+  subtitulo: string[];  
 
   onPress?: () => void;
   onPressEditar?: () => void;
@@ -14,9 +14,9 @@ export type CardCierreProps = {
 
   style?: StyleProp<ViewStyle>;
 
-  leftIconProps?: Omit<BotonHeaderProps, "onPress">; // ícono ubi
-  editIconProps?: Omit<BotonHeaderProps, "onPress">; // ícono editar
-  deleteIconProps?: Omit<BotonHeaderProps, "onPress">; // ícono cerrar
+  leftIconProps?: Omit<BotonHeaderProps, "onPress">; 
+  editIconProps?: Omit<BotonHeaderProps, "onPress">; 
+  deleteIconProps?: Omit<BotonHeaderProps, "onPress">; 
 };
 
 const CardCierre = ({
