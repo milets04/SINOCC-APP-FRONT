@@ -46,7 +46,7 @@ const SettingsItem: React.FC<SettingsItemProps> = ({
       <Switch
         value={switchValue}
         onValueChange={onSwitchChange}
-        trackColorActive="#000000"
+        trackColorActive="#068EF7"
         trackColorInactive="#000000"
         thumbColor="#FFFFFF"
         width={60}

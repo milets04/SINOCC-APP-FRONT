@@ -17,7 +17,7 @@ interface SwitchProps {
 const Switch: React.FC<SwitchProps> = ({
   value,
   onValueChange,
-  trackColorActive = '#000000',
+  trackColorActive = '#068EF7',
   trackColorInactive = '#000000',
   thumbColor = '#FFFFFF',
   width = 60,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   thumb: {
     position: 'absolute',
-    shadowColor: '#000',
+    shadowColor: '#be4343ff',
     shadowOffset: {
       width: 0,
       height: 2,

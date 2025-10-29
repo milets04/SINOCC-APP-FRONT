@@ -33,7 +33,7 @@ const ZoneNotifications: React.FC<ZoneNotificationsProps> = ({
             <Switch
               value={zone.enabled}
               onValueChange={(newValue) => onZoneToggle(zone.id, newValue)}
-              trackColorActive="#000000"
+              trackColorActive="#068EF7"
               trackColorInactive="#000000"
               thumbColor="#FFFFFF"
               width={60}
