@@ -2,9 +2,8 @@ import Boton from "@/componentes/atomos/boton";
 import TituloPestania from "@/componentes/atomos/tituloPestania";
 import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
-import MenuInf from "@/componentes/moleculas/menuInf";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
-import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { memo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -13,6 +12,11 @@ interface Cierre {
   titulo: string;
   subtitulo: string[];
 }
+const router = useRouter();
+  
+const navegarACrearCierre = () => {
+    router.push("/crearCierre");
+};
 
 const PrincAdmin = () => {
   // Estado para manejar la lista de cierres
@@ -109,21 +113,13 @@ const PrincAdmin = () => {
         
         <Boton
           texto="Crear nuevo cierre"
-          onPress={() => console.log("Crear nuevo cierre")}
+          onPress={navegarACrearCierre}
           variante="primario"
           tamaño="grande"
           ancho="completo"
           estilo={styles.button}
         />
       </ScrollView>
-
-      {/* Menú Inferior */}
-      <MenuInf
-        homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
-        mapIcon={<Ionicons name="people-outline" size={28} color="#146BF6" />}
-        onHomePress={() => console.log("Home pressed")}
-        onMapPress={() => console.log("Administradores pressed")}
-      />
 
       {/* Modal de Confirmación */}
       <ModalConfirmacion
