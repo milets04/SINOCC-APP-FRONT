@@ -3,6 +3,7 @@ import TituloPestania from "@/componentes/atomos/tituloPestania";
 import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
+import { useRouter } from "expo-router";
 import React, { memo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -11,6 +12,11 @@ interface Cierre {
   titulo: string;
   subtitulo: string[];
 }
+const router = useRouter();
+  
+const navegarACrearCierre = () => {
+    router.push("/crearCierre");
+};
 
 const PrincAdmin = () => {
   // Estado para manejar la lista de cierres
@@ -107,7 +113,7 @@ const PrincAdmin = () => {
         
         <Boton
           texto="Crear nuevo cierre"
-          onPress={() => console.log("Crear nuevo cierre")}
+          onPress={navegarACrearCierre}
           variante="primario"
           tamaño="grande"
           ancho="completo"
