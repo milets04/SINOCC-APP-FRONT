@@ -34,7 +34,6 @@ export default function CrearAdmin() {
     setCargando(true);
 
     try {
-      //lógica de registro
       console.log('Registrando admin:', {
         nombre,
         apellido,
