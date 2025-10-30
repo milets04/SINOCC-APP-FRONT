@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 
-const obtenerApiUrl = () => {
+const obtenerApiUrl = () => { 
   try {
     const host =
       Constants?.expoConfig?.hostUri ||
@@ -227,8 +227,17 @@ class AutenticacionServicio {
    */
   async obtenerToken(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem('token');
+      // Buscar primero en la clave usada por AuthProvider
+      let token = await AsyncStorage.getItem('userToken');
+
+      // Si no existe, probar con la vieja clave (por compatibilidad)
+      if (!token) {
+        token = await AsyncStorage.getItem('token');
+      }
+
+      return token;
     } catch (error) {
+      console.error("❌ Error al obtener el token:", error);
       return null;
     }
   }
@@ -271,6 +280,168 @@ class AutenticacionServicio {
     return Math.random().toString(36).substring(2, 15) + 
            Math.random().toString(36).substring(2, 15);
   }
+
+  async crearAdministrador(
+    nombre: string,
+    apellido: string,
+    correo: string,
+    contrasena: string
+  ): Promise<{ exito: boolean; mensaje: string }> {
+    try {
+      const token = await this.obtenerToken();
+      if (!token) {
+        return { exito: false, mensaje: "No hay sesión activa del SuperAdmin" };
+      }
+
+      const response = await fetch(`${API_URL}/usuarios/administrador`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nombre,
+          apellido,
+          correo,
+          contrasena,
+        }),
+      });
+
+      const datos = await response.json();
+
+      if (!response.ok) {
+        return { exito: false, mensaje: datos.mensaje || "Error al crear el administrador" };
+      }
+
+      return { exito: true, mensaje: datos.mensaje || "Administrador creado exitosamente" };
+    } catch (error) {
+      console.error("❌ Error en crearAdministrador:", error);
+      return { exito: false, mensaje: "Error de conexión con el servidor" };
+    }
+  }
+
+  /**
+   * Obtener lista de administradores (solo SuperAdmin)
+   */
+  async obtenerAdministradores(): Promise<any[]> {
+    try {
+      const token = await this.obtenerToken();
+      if (!token) {
+        console.warn("⚠️ No hay sesión activa del SuperAdmin");
+        return [];
+      }
+
+      const response = await fetch(`${API_URL}/usuarios?rol=administrador`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const datos = await response.json();
+
+      if (!response.ok || !datos.exito) {
+        console.warn("⚠️ Error al obtener administradores:", datos.mensaje);
+        return [];
+      }
+
+      return datos.datos || [];
+    } catch (error) {
+      console.error("❌ Error en obtenerAdministradores:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Eliminar un administrador (solo SuperAdmin)
+   */
+  async eliminarAdministrador(id: string): Promise<{ exito: boolean; mensaje: string }> {
+    try {
+      const token = await this.obtenerToken();
+      if (!token) {
+        return { exito: false, mensaje: "No hay sesión activa del SuperAdmin" };
+      }
+
+      const response = await fetch(`${API_URL}/usuarios/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const datos = await response.json();
+
+      if (!response.ok) {
+        return { exito: false, mensaje: datos.mensaje || "Error al eliminar el administrador" };
+      }
+
+      return { exito: true, mensaje: datos.mensaje || "Administrador eliminado correctamente" };
+    } catch (error) {
+      console.error("❌ Error en eliminarAdministrador:", error);
+      return { exito: false, mensaje: "Error de conexión con el servidor" };
+    }
+  }
+
+ async obtenerAdministradorPorId(id: string) {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) throw new Error('No hay sesión activa del SuperAdmin');
+
+    const response = await fetch(`${API_URL}/usuarios/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const datos = await response.json();
+    console.log("📦 Datos del backend:", datos);
+
+    if (!response.ok) {
+      throw new Error(datos.mensaje || 'Error al obtener usuario');
+    }
+
+    // El backend devuelve el usuario directamente en "datos"
+    return datos.datos;
+  } catch (error) {
+    console.error('❌ Error en obtenerAdministradorPorId:', error);
+    throw error;
+  }
+}
+
+/**
+ * Edita los datos de un administrador existente
+ */
+async editarAdministrador(id: string, datosActualizados: any) {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) throw new Error('No hay sesión activa del SuperAdmin');
+
+    const response = await fetch(`${API_URL}/usuarios/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datosActualizados),
+    });
+
+    const datos = await response.json();
+
+    if (!response.ok) {
+      return { exito: false, mensaje: datos.mensaje || 'Error al editar el usuario' };
+    }
+
+    return { exito: true, mensaje: 'Administrador actualizado correctamente' };
+  } catch (error: any) {
+    console.error('❌ Error en editarAdministrador:', error);
+    return { exito: false, mensaje: error.message || 'Error al editar usuario' };
+  }
+}
+
 }
 
 export default new AutenticacionServicio();

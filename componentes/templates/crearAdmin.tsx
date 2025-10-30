@@ -1,11 +1,14 @@
 import Boton from '@/componentes/atomos/boton';
 import Input from '@/componentes/atomos/input';
-import SubirFoto from '@/componentes/atomos/subirFoto';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
+import { useRouter } from "expo-router";
 import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import HeaderSimple from '../moleculas/headerSimple';
 
 const SINOCC_PM = require('../../assets/images/SINOCC_PM.png');
+
+import conexion from "@/app/conexion";
 
 export default function CrearAdmin() {
   const [nombre, setNombre] = useState('');
@@ -15,9 +18,11 @@ export default function CrearAdmin() {
   const [fotoUri, setFotoUri] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  const handleImageSelected = (uri: string) => {
+  const router = useRouter();
+
+  /*const handleImageSelected = (uri: string) => {
     setFotoUri(uri);
-  };
+  };*/
 
   const handleRegistrar = async () => {
     if (!nombre.trim() || !apellido.trim() || !correo.trim() || !contrasena.trim()) {
@@ -25,49 +30,38 @@ export default function CrearAdmin() {
       return;
     }
 
-    if (!fotoUri) {
-      alert('Por favor sube una foto');
-      return;
-    }
-
     setCargando(true);
 
-    try {
-      //lógica de registro
-      console.log('Registrando admin:', {
-        nombre,
-        apellido,
-        correo,
-        contrasena,
-        foto: fotoUri,
-      });
+  try {
+    const respuesta = await conexion.crearAdministrador(
+      nombre,
+      apellido,
+      correo,
+      contrasena
+    );
 
-      setTimeout(() => {
-        alert('Administrador creado exitosamente');
-
-        setNombre('');
-        setApellido('');
-        setCorreo('');
-        setContrasena('');
-        setFotoUri(null);
-        setCargando(false);
-      }, 1500);
-    } catch (error) {
-      alert('Error al crear el administrador');
-      setCargando(false);
+    if (respuesta.exito) {
+      alert("Administrador creado exitosamente ✅");
+      setNombre("");
+      setApellido("");
+      setCorreo("");
+      setContrasena("");
+       router.back();
+    } else {
+      alert(respuesta.mensaje || "Error al crear el administrador");
     }
-  };
+  } catch (error) {
+    console.error(error);
+    alert("Error de conexión con el servidor");
+  } finally {
+    setCargando(false);
+  }
+};
 
   return (
     <View style={styles.container}>
 
-      <View style={styles.headerContainer}>
-        <Image 
-          source={SINOCC_PM} 
-          style={styles.logo} 
-          resizeMode="contain" 
-        />
-      </View>
+      <HeaderSimple onPressRoute="/gestionAdmins"/>
 
       <ScrollView 
         style={styles.scrollContent}
@@ -111,10 +105,6 @@ export default function CrearAdmin() {
             style={{ marginTop: 16 }}
           />
 
-          <View style={styles.fotoContainer}>
-            <SubirFoto onImageSelected={handleImageSelected} />
-          </View>
-
           <View style={styles.buttonContainer}>
             <Boton
               texto="Registrar"
@@ -136,14 +126,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
-  },
-  headerContainer: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    alignItems: 'flex-start',
-    borderBottomWidth: 1,
-    borderBottomColor: '#146BF6',
+    paddingTop: 25,
   },
   logo: {
     width: 130,
