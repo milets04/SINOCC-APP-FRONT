@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 15,
     elevation: 3,
+    marginBottom: 10
   },
   leftCol: {
     width: 28,
