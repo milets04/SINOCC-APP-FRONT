@@ -1,9 +1,7 @@
 import React, { createContext, ReactNode, useContext, useState } from 'react';
-
-// Re-usa la interfaz que ya definiste en tu formulario
 export interface UbicacionData {
   id: string | number;
-  direccion: string; // Haremos un placeholder para esto
+  direccion: string; 
   latitud: number;
   longitud: number;
 }
@@ -13,10 +11,8 @@ interface UbicacionesContextType {
   setUbicaciones: React.Dispatch<React.SetStateAction<UbicacionData[]>>;
 }
 
-// 1. Crear el Contexto
 const UbicacionesContext = createContext<UbicacionesContextType | undefined>(undefined);
 
-// 2. Crear el Proveedor (Provider)
 export const UbicacionesProvider = ({ children }: { children: ReactNode }) => {
   const [ubicaciones, setUbicaciones] = useState<UbicacionData[]>([]);
 
@@ -27,7 +23,6 @@ export const UbicacionesProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 3. Crear un Hook personalizado (para usarlo fácil)
 export const useUbicaciones = () => {
   const context = useContext(UbicacionesContext);
   if (!context) {

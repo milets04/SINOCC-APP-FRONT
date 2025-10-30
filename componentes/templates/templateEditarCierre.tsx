@@ -2,7 +2,8 @@ import { SelectOption } from '@/componentes/atomos/selectFormulario';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
 import FormularioCierre, { FormularioCierreData, UbicacionData } from '@/componentes/moleculas/formularioCierre';
 import HeaderSimple from '@/componentes/moleculas/headerSimple';
-import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 
 interface TemplateEditarCierreProps {
@@ -10,7 +11,8 @@ interface TemplateEditarCierreProps {
   zonas?: SelectOption[];
   datosIniciales?: FormularioCierreData;
   onSubmit?: (data: FormularioCierreData) => void;
-  onAbrirMapa?: () => void;
+  ubicaciones: UbicacionData[]; 
+  setUbicaciones: React.Dispatch<React.SetStateAction<UbicacionData[]>>;
 }
 
 const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
@@ -18,14 +20,21 @@ const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
   zonas,
   datosIniciales,
   onSubmit,
-  onAbrirMapa,
+  ubicaciones, 
+  setUbicaciones, 
 }) => {
-  const [ubicacionesSeleccionadas, setUbicacionesSeleccionadas] = useState<UbicacionData[]>(
-    datosIniciales?.ubicaciones || []
-  );
+  const router = useRouter(); 
+
+  // ✅ CAMBIADO: Usar directamente las ubicaciones del contexto
+  const ubicacionesSeleccionadas = ubicaciones;
+
+  const handleAbrirMapa = () => {
+    router.push('/seleccionarMapa'); 
+  };
 
   const handleEliminarUbicacion = (id: string | number) => {
-    setUbicacionesSeleccionadas(
+    // ✅ CAMBIADO: Usar setUbicaciones de las props (del contexto)
+    setUbicaciones(
       ubicacionesSeleccionadas.filter((ub) => ub.id !== id)
     );
   };
@@ -45,7 +54,6 @@ const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Header */}
       <HeaderSimple onPressRoute="/superAdmin"/>
 
       <ScrollView 
@@ -61,7 +69,7 @@ const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
           categorias={categorias ?? []}
           zonas={zonas ?? []}
           ubicacionesSeleccionadas={ubicacionesSeleccionadas}
-          onAbrirMapa={onAbrirMapa ?? (() => {})}
+          onAbrirMapa={handleAbrirMapa}
           onEliminarUbicacion={handleEliminarUbicacion}
           onSubmit={handleSubmit}
           tituloBoton="Guardar"
