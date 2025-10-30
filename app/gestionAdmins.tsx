@@ -62,8 +62,19 @@ export default function GestionAdmins() {
   }, []);
 
   const handleEditAdmin = (nombre: string) => {
-    Alert.alert('Editar', `Editar administrador: ${nombre}`);
-  };
+  const admin = administradores.find((a) => a.nombre === nombre);
+  if (admin) {
+    router.push({
+      pathname: "/editarAdmins",
+      params: {
+        id: admin.id,
+        nombre: admin.nombre,
+        correo: admin.correo,
+        usuario: admin.usuario,
+      },
+    });
+  }
+};
 
   const handleDeleteAdmin = (nombre: string) => {
     const admin = administradores.find((a) => a.nombre === nombre);

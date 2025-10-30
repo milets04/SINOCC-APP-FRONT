@@ -384,6 +384,64 @@ class AutenticacionServicio {
     }
   }
 
+ async obtenerAdministradorPorId(id: string) {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) throw new Error('No hay sesión activa del SuperAdmin');
+
+    const response = await fetch(`${API_URL}/usuarios/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const datos = await response.json();
+    console.log("📦 Datos del backend:", datos);
+
+    if (!response.ok) {
+      throw new Error(datos.mensaje || 'Error al obtener usuario');
+    }
+
+    // El backend devuelve el usuario directamente en "datos"
+    return datos.datos;
+  } catch (error) {
+    console.error('❌ Error en obtenerAdministradorPorId:', error);
+    throw error;
+  }
+}
+
+/**
+ * Edita los datos de un administrador existente
+ */
+async editarAdministrador(id: string, datosActualizados: any) {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) throw new Error('No hay sesión activa del SuperAdmin');
+
+    const response = await fetch(`${API_URL}/usuarios/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datosActualizados),
+    });
+
+    const datos = await response.json();
+
+    if (!response.ok) {
+      return { exito: false, mensaje: datos.mensaje || 'Error al editar el usuario' };
+    }
+
+    return { exito: true, mensaje: 'Administrador actualizado correctamente' };
+  } catch (error: any) {
+    console.error('❌ Error en editarAdministrador:', error);
+    return { exito: false, mensaje: error.message || 'Error al editar usuario' };
+  }
+}
+
 }
 
 export default new AutenticacionServicio();
