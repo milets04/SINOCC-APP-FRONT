@@ -4,10 +4,54 @@ import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import MenuInf from "@/componentes/moleculas/menuInf";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import React, { memo } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { memo, useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+
+type Cierre = {
+  id: number;
+  categoria: string | null;
+  lugarCierre: string;
+  idZona: number | null;
+  fechaInicio: string;
+  fechaFin: string;
+  descripcion: string | null;
+  createdAt: string;
+  modifiedAt: string;
+  zona: { id: number; nombreZona: string } | null;
+  ubicaciones: Array<{
+    id: number;
+    idCierre: number;
+    latitud: string;
+    longitud: string;
+  }>;
+};
+
+//  Detección automática de IP y fallback
+const obtenerApiUrl = () => {
+  try {
+    const host =
+      Constants?.expoConfig?.hostUri ||
+      Constants?.manifest2?.extra?.expoClient?.hostUri;
+
+    if (host) {
+      const ip = host.split(":")[0];
+      const apiUrl = `http://${ip}:3000/api`;
+      console.log("🌐 API URL detectada automáticamente:", apiUrl);
+      return apiUrl;
+    }
+  } catch (error) {
+    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
+  }
+
+  console.log("🌐 Usando localhost como fallback");
+  return "http://localhost:3000/api";
+};
+
+const API_BASE = obtenerApiUrl();
 
 const princSuper= () => {
 
@@ -16,6 +60,13 @@ const princSuper= () => {
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cierreAEliminar, setCierreAEliminar] = useState<Cierre | null>(null);
+
+  const navegarAGestionAdmins = () => {
+    router.push("/gestionAdmins");
+  };
 
   // ✅ Obtener token almacenado
   const obtenerToken = async (): Promise<string | null> => {
@@ -113,6 +164,34 @@ const princSuper= () => {
     },
     [router]
   );
+
+  const handleMostrarModalEliminar = (cierre: Cierre) => {
+    setCierreAEliminar(cierre);
+    setModalVisible(true);
+  };
+
+  // Función para confirmar y eliminar el cierre
+  const handleConfirmarEliminar = () => {
+    if (cierreAEliminar) {
+      // Eliminar el cierre del estado
+      setCierres(cierres.filter((c) => c.id !== cierreAEliminar.id));
+      
+      console.log('Cierre eliminado:', cierreAEliminar.lugarCierre);
+      
+      // Aquí puedes agregar la lógica para eliminar del backend/API
+      // Ejemplo: await deleteCierre(cierreAEliminar.id);
+    }
+    
+    // Cerrar modal y limpiar estado
+    setModalVisible(false);
+    setCierreAEliminar(null);
+  };
+
+  // Función para cancelar la eliminación
+  const handleCancelarEliminar = () => {
+    setModalVisible(false);
+    setCierreAEliminar(null);
+  };
 
   //  Eliminar cierre con token
   const handleEliminar = useCallback(async (cierre: Cierre) => {
@@ -245,7 +324,7 @@ const princSuper= () => {
         titulo="¿Eliminar cierre?"
         mensaje={
           cierreAEliminar
-            ? `¿Está seguro que desea eliminar el cierre "${cierreAEliminar.titulo}"? Esta acción no se puede deshacer.`
+            ? `¿Está seguro que desea eliminar el cierre "${cierreAEliminar.lugarCierre}"? Esta acción no se puede deshacer.`
             : "¿Está seguro que desea eliminar este cierre?"
         }
         textoConfirmar="Sí, eliminar"
@@ -285,10 +364,6 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     alignItems: 'center',
   },
-  emptyText: {
-    fontSize: 16,
-    color: '#999999',
-  },
 });
 
-export default memo(PrincSuper);
+export default memo(princSuper);
