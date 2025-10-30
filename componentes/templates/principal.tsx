@@ -2,76 +2,163 @@ import CierreAct from "@/componentes/moleculas/cierreAct";
 import Header from "@/componentes/moleculas/header";
 import MenuInf from "@/componentes/moleculas/menuInf";
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import React, { memo } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { memo, useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+// 🧩 Tipado del cierre
+type Cierre = {
+  id: number;
+  categoria: string | null;
+  lugarCierre: string;
+  idZona: number | null;
+  fechaInicio: string;
+  fechaFin: string;
+  descripcion: string | null;
+  createdAt: string;
+  modifiedAt: string;
+  zona: { id: number; nombreZona: string } | null;
+  ubicaciones: Array<{ id: number; idCierre: number; latitud: string; longitud: string }>;
+};
+
+// 🌐 Detección automática de IP
+const obtenerApiUrl = () => {
+  try {
+    const host =
+      Constants?.expoConfig?.hostUri ||
+      Constants?.manifest2?.extra?.expoClient?.hostUri;
+
+    if (host) {
+      const ip = host.split(":")[0];
+      const apiUrl = `http://${ip}:3000/api`;
+      console.log("🌐 API URL detectada automáticamente:", apiUrl);
+      return apiUrl;
+    }
+  } catch (error) {
+    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
+  }
+
+  console.log("🌐 Usando localhost como fallback");
+  return "http://localhost:3000/api";
+};
+
+const API_BASE = obtenerApiUrl();
 
 const Principal = () => {
-    const router = useRouter();
+  const router = useRouter();
+  const [cierres, setCierres] = useState<Cierre[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [refrescando, setRefrescando] = useState(false);
 
-    const navegarAlMapa = () => {
-      router.push("/mapa");
-    };
-  
-    const navegarANotif = () => {
-      router.push("/pantallaNotif");
-    };
+  // 🔄 Obtener cierres desde el backend
+  const obtenerCierres = useCallback(async () => {
+    setCargando(true);
+    try {
+      const response = await fetch(`${API_BASE}/cierres`);
+      if (!response.ok) throw new Error("Error al conectar con el servidor");
+      const data = await response.json();
 
-    const navegarAConf = () => {
-      router.push("/pantallaConf");
-    };
+      if (data.exito) {
+        setCierres(data.datos);
+      } else {
+        throw new Error(data.mensaje || "Error al obtener cierres");
+      }
+    } catch (error) {
+      console.error("❌ Error al obtener cierres:", error);
+      Alert.alert(
+        "Error de conexión",
+        "No se pudieron obtener los cierres. Verifica tu conexión o la IP del servidor."
+      );
+    } finally {
+      setCargando(false);
+      setRefrescando(false);
+    }
+  }, []);
 
-    const cierres = [
-    {
-      titulo: "Avenida Oquendo",
-      lugar: "Centro",
-      descripcion: "Cierre por obras",
-      horaInicio: "2:15 PM",
-      estimado: "1–2 hours",
-      categoriaAlerta: "exito",
-      categoriaNivel: "BAJO",
-    },
-    {
-      titulo: "Calle Tarija",
-      lugar: "delfines",
-      descripcion: "pintado de casetas",
-      horaInicio: "6:15 PM",
-      estimado: "1–2 hours",
-      categoriaAlerta: "peligro",
-      categoriaNivel: "ALTO",
-    },
-    {
-      titulo: "Avenida Circunvalacion",
-      lugar: "casa comunal",
-      descripcion: "Cierre por cañerias",
-      horaInicio: "6:15 PM",
-      estimado: "1–2 hours",
-      categoriaAlerta: "peligro",
-      categoriaNivel: "ALTO",
-    },
-  ] as const; 
+  useEffect(() => {
+    obtenerCierres();
+  }, [obtenerCierres]);
+
+  const onRefresh = useCallback(() => {
+    setRefrescando(true);
+    obtenerCierres();
+  }, [obtenerCierres]);
+
+  // 🧭 Navegaciones
+  const navegarAlMapa = () => router.push("/mapa");
+  const navegarANotif = () => router.push("/pantallaNotif");
+  const navegarAConf = () => router.push("/pantallaConf");
+
+  // ⏱️ Calcular duración (opcional)
+  const calcularDuracion = (inicio: string, fin: string) => {
+    const f1 = new Date(inicio);
+    const f2 = new Date(fin);
+    return Math.ceil((f2.getTime() - f1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  // 🎨 UI
+  if (cargando) {
+    return (
+      <View style={styles.container}>
+        <Header onBellPress={navegarANotif} onSettingsPress={navegarAConf} />
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#146BF6" />
+          <Text style={styles.loadingText}>Cargando cierres...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Header 
-        onBellPress={navegarANotif}
-        onSettingsPress={navegarAConf}
-      />
-      <ScrollView contentContainerStyle={styles.content}>
-        {cierres.map((cierre, index) => (
-          <CierreAct
-            key={index}
-            titulo={cierre.titulo}
-            lugar={cierre.lugar}
-            descripcion={cierre.descripcion}
-            horaInicio={cierre.horaInicio}
-            estimado={cierre.estimado}
-            categoriaAlerta={cierre.categoriaAlerta}
-            categoriaNivel={cierre.categoriaNivel}
-            style={styles.card}
-          />
-        ))}
+      <Header onBellPress={navegarANotif} onSettingsPress={navegarAConf} />
+
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refrescando} onRefresh={onRefresh} />
+        }
+      >
+        {cierres.length === 0 ? (
+          <Text style={styles.emptyText}>No hay cierres activos.</Text>
+        ) : (
+          cierres.map((cierre) => {
+            const duracion = calcularDuracion(cierre.fechaInicio, cierre.fechaFin);
+            const categoriaNivel =
+              cierre.categoria === "ALTO" ? "ALTO" :
+              cierre.categoria === "MEDIO" ? "MEDIO" : "BAJO";
+
+            // ⚠️ Puedes ajustar la lógica de color según tus categorías
+            const categoriaAlerta =
+              cierre.categoria === "ALTO" ? "peligro" :
+              cierre.categoria === "MEDIO" ? "advertencia" : "exito";
+
+            return (
+              <CierreAct
+                key={cierre.id}
+                titulo={cierre.lugarCierre}
+                lugar={cierre.zona?.nombreZona || "Sin zona"}
+                descripcion={cierre.descripcion || "Sin descripción"}
+                horaInicio={new Date(cierre.fechaInicio).toLocaleDateString()}
+                estimado={`${duracion} día${duracion !== 1 ? "s" : ""}`}
+                categoriaAlerta={categoriaAlerta}
+                categoriaNivel={categoriaNivel}
+                style={styles.card}
+              />
+            );
+          })
+        )}
       </ScrollView>
+
       <MenuInf
         homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
         mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />}
@@ -82,6 +169,7 @@ const Principal = () => {
   );
 };
 
+// 🎨 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -91,7 +179,23 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingVertical: 20,
-    paddingBottom: 90, 
+    paddingBottom: 90,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#666",
+    fontSize: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 30,
   },
   card: {
     marginBottom: 12,
