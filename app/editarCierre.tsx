@@ -52,6 +52,7 @@ export default function EditarCierre() {
 
   // 🔹 Obtener zonas
   useEffect(() => {
+    let yaInicializado = false;
   const fetchData = async () => {
     try {
       if (!cierreId) throw new Error("ID de cierre no proporcionado");
@@ -81,13 +82,18 @@ export default function EditarCierre() {
 
       const cierre = cierreData.datos;
       const ubicacionesData =
-        cierre.ubicaciones?.map((u: any) => ({
-          id: u.id,
-          latitud: u.latitud,
-          longitud: u.longitud,
+        cierre.ubicaciones?.map((u: any, index: number) => ({
+          id: u.id ?? index,
+          direccion: `Ubicación (${index + 1})`,
+          latitud: Number(u.latitud),
+          longitud: Number(u.longitud),
         })) || [];
 
-        setUbicaciones(ubicacionesData);
+        if (!yaInicializado && ubicacionesSeleccionadas.length === 0) {
+        setUbicaciones([...ubicacionesData]);
+        yaInicializado = true;
+      } 
+
 
     setDatosIniciales({
       categoria: cierre.categoria,
@@ -123,7 +129,7 @@ export default function EditarCierre() {
       fechaInicio: data.fechaInicio,
       fechaFin: data.fechaFin,
       descripcion: data.motivo,
-      ubicaciones: data.ubicaciones.map(ub => ({
+      ubicaciones: ubicacionesSeleccionadas.map(ub => ({
         latitud: ub.latitud,
         longitud: ub.longitud,
       })),
@@ -141,7 +147,9 @@ export default function EditarCierre() {
       const dataRes = await res.json();
       if (!res.ok) throw new Error(dataRes.mensaje || "Error al editar");
       Alert.alert("Éxito", "Cierre actualizado correctamente");
+
       router.back();
+      setTimeout(() => setUbicaciones([]), 500);
     } catch (err: any) {
       Alert.alert("Error", err.message);
     }

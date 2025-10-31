@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Boton from '../atomos/boton';
 import CalendarioPersonalizado from '../atomos/calendario';
@@ -54,6 +54,31 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     motivo: datosIniciales?.motivo || '',
     ubicaciones: datosIniciales?.ubicaciones || [],
   });
+
+  // 🔹 Sincroniza los datos iniciales y las ubicaciones cuando cambian
+  useEffect(() => {
+    if (datosIniciales) {
+      setFormData((prev) => ({
+        ...prev,
+        categoria: datosIniciales.categoria || prev.categoria,
+        lugarCierre: datosIniciales.lugarCierre || prev.lugarCierre,
+        zona: datosIniciales.zona || prev.zona,
+        fechaInicio: datosIniciales.fechaInicio || prev.fechaInicio,
+        fechaFin: datosIniciales.fechaFin || prev.fechaFin,
+        motivo: datosIniciales.motivo || prev.motivo,
+        ubicaciones: datosIniciales.ubicaciones || prev.ubicaciones,
+      }));
+    }
+  }, [datosIniciales]);
+
+  useEffect(() => {
+    if (ubicacionesSeleccionadas) {
+      setFormData((prev) => ({
+        ...prev,
+        ubicaciones: ubicacionesSeleccionadas,
+      }));
+    }
+  }, [ubicacionesSeleccionadas]);
 
   const [showInicioPicker, setShowInicioPicker] = useState(false);
   const [showFinPicker, setShowFinPicker] = useState(false);
