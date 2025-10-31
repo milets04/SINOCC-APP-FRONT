@@ -18,7 +18,7 @@ export default function PantallaSeleccionarMapa() {
       longitud: coordinate.longitude,
       direccion: `Ubicación (${(ubicaciones.length + 1)})`,
     };
-    setUbicaciones([...ubicaciones, nuevaUbicacion]);
+    setUbicaciones((prev) => [...prev, nuevaUbicacion]);
   };
 
   const ubicacionesParaMapa: UbicacionCierre[] = ubicaciones.map((ub) => ({
