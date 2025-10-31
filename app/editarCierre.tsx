@@ -48,58 +48,67 @@ export default function EditarCierre() {
   const [isLoading, setIsLoading] = useState(true);
   const [datosIniciales, setDatosIniciales] = useState<FormularioCierreData>();
   const { ubicaciones: ubicacionesSeleccionadas, setUbicaciones } = useUbicaciones();
-
   const cierreId = params.cierreId?.toString();
 
   // 🔹 Obtener zonas
   useEffect(() => {
-    const fetchZonas = async () => {
-      try {
-        const response = await fetch(`${API_URL}/zonas`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`, 
-          },
-        });
-        
-        const responseData = await response.json();
+  const fetchData = async () => {
+    try {
+      if (!cierreId) throw new Error("ID de cierre no proporcionado");
 
-        if (response.ok && responseData.datos && Array.isArray(responseData.datos)) {
-          const zonasData: ZonaAPI[] = responseData.datos; 
-          const opcionesFormateadas = zonasData.map((zona) => ({
-            label: zona.nombreZona,
-            value: zona.id,
-          }));
-          setZonasOptions(opcionesFormateadas);
-        } else {
-          throw new Error(responseData.mensaje || 'Respuesta inesperada del servidor');
-        }
+      // 🔹 Cargar zonas y cierre en paralelo
+      const [zonasRes, cierreRes] = await Promise.all([
+        fetch(`${API_URL}/zonas`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/cierres/${cierreId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-      } catch (error: any) {
-        console.error("Error al cargar las zonas:", error);
-        Alert.alert("Error", `No se pudieron cargar las zonas: ${error.message}`);
+      const zonasData = await zonasRes.json();
+      const cierreData = await cierreRes.json();
+
+      if (!zonasRes.ok) throw new Error("Error al obtener zonas");
+      if (!cierreRes.ok) throw new Error("Error al obtener cierre");
+
+      const zonasOpts =
+        zonasData?.datos?.map((z: any) => ({
+          label: z.nombreZona,
+          value: z.id.toString(), 
+        })) || [];
+      setZonasOptions(zonasOpts);
+
+      const cierre = cierreData.datos;
+      const ubicacionesData =
+        cierre.ubicaciones?.map((u: any) => ({
+          id: u.id,
+          latitud: u.latitud,
+          longitud: u.longitud,
+        })) || [];
+
+        setUbicaciones(ubicacionesData);
+
+    setDatosIniciales({
+      categoria: cierre.categoria,
+      zona: cierre.idZona?.toString(), 
+      lugarCierre: cierre.lugarCierre,
+      fechaInicio: cierre.fechaInicio,
+      fechaFin: cierre.fechaFin,
+      motivo: cierre.descripcion,
+      ubicaciones: ubicacionesData,
+      });
+
+    } catch (err: any) {
+        console.error("Error cargando datos:", err);
+        Alert.alert("Error", err.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchZonas();
-  }, [token]);
-
-
-  useEffect(() => {
-    setDatosIniciales({
-      categoria: params.categoria?.toString() ?? '',
-      zona: params.idZona?.toString() ?? '',
-      lugarCierre: params.lugarCierre?.toString() ?? '',
-      fechaInicio: params.fechaInicio?.toString() ?? '',
-      fechaFin: params.fechaFin?.toString() ?? '',
-      motivo: params.descripcion?.toString() ?? '',
-      ubicaciones: [], // para no generar bucle
-    });
-  }, []);
-
+    fetchData();
+  }, [cierreId, token]);
 
   const handleFormSubmit = async (data: FormularioCierreData) => {
     if (!cierreId) {
@@ -108,7 +117,7 @@ export default function EditarCierre() {
     }
 
     const payload = {
-      categoria: data.categoria.toString(),
+      categoria: data.categoria,
       lugarCierre: data.lugarCierre,
       idZona: Number(data.zona),
       fechaInicio: data.fechaInicio,
@@ -121,30 +130,20 @@ export default function EditarCierre() {
     };
 
     try {
-      console.log("Editando cierre ID:", cierreId);
-      console.log("Payload:", JSON.stringify(payload, null, 2));
-
-      const response = await fetch(`${API_URL}/cierres/${cierreId}`, {
-        method: 'PUT', // PUT para actu
+      const res = await fetch(`${API_URL}/cierres/${cierreId}`, {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(responseData.mensaje || 'Error al actualizar el cierre');
-      }
-
-      Alert.alert('Éxito', 'Cierre actualizado correctamente');
+      const dataRes = await res.json();
+      if (!res.ok) throw new Error(dataRes.mensaje || "Error al editar");
+      Alert.alert("Éxito", "Cierre actualizado correctamente");
       router.back();
-
-    } catch (error: any) {
-      console.error("Error al guardar el cierre:", error);
-      Alert.alert("Error", `No se pudo guardar el cierre: ${error.message}`);
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
     }
   };
 
