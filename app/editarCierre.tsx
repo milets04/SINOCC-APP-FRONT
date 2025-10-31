@@ -4,7 +4,7 @@ import TemplateEditarCierre from '@/componentes/templates/templateEditarCierre';
 import { useAuth } from '@/contexto/autenticacion';
 import { useUbicaciones } from '@/contexto/ubicaciones';
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 
@@ -42,11 +42,16 @@ interface ZonaAPI {
 
 export default function EditarCierre() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { token } = useAuth(); 
   const [zonasOptions, setZonasOptions] = useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [datosIniciales, setDatosIniciales] = useState<FormularioCierreData>();
   const { ubicaciones: ubicacionesSeleccionadas, setUbicaciones } = useUbicaciones();
 
+  const cierreId = params.cierreId?.toString();
+
+  // 🔹 Obtener zonas
   useEffect(() => {
     const fetchZonas = async () => {
       try {
@@ -60,16 +65,12 @@ export default function EditarCierre() {
         
         const responseData = await response.json();
 
-        console.log("Respuesta completa de /zonas (editar):", JSON.stringify(responseData, null, 2));
-        
         if (response.ok && responseData.datos && Array.isArray(responseData.datos)) {
           const zonasData: ZonaAPI[] = responseData.datos; 
-          
           const opcionesFormateadas = zonasData.map((zona) => ({
             label: zona.nombreZona,
             value: zona.id,
           }));
-          
           setZonasOptions(opcionesFormateadas);
         } else {
           throw new Error(responseData.mensaje || 'Respuesta inesperada del servidor');
@@ -84,12 +85,28 @@ export default function EditarCierre() {
     };
 
     fetchZonas();
-  }, [token]); 
+  }, [token]);
+
+
+  useEffect(() => {
+    setDatosIniciales({
+      categoria: params.categoria?.toString() ?? '',
+      zona: params.idZona?.toString() ?? '',
+      lugarCierre: params.lugarCierre?.toString() ?? '',
+      fechaInicio: params.fechaInicio?.toString() ?? '',
+      fechaFin: params.fechaFin?.toString() ?? '',
+      motivo: params.descripcion?.toString() ?? '',
+      ubicaciones: [], // para no generar bucle
+    });
+  }, []);
+
 
   const handleFormSubmit = async (data: FormularioCierreData) => {
-    // TODO: Aquí irá la lógica para EDITAR el cierre (PUT/PATCH)
-    console.log("📝 Datos del formulario para editar:", data);
-    
+    if (!cierreId) {
+      Alert.alert("Error", "ID del cierre no especificado.");
+      return;
+    }
+
     const payload = {
       categoria: data.categoria.toString(),
       lugarCierre: data.lugarCierre,
@@ -104,11 +121,30 @@ export default function EditarCierre() {
     };
 
     try {
-      console.log("Payload preparado para editar:", JSON.stringify(payload, null, 2));
+      console.log("Editando cierre ID:", cierreId);
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+
+      const response = await fetch(`${API_URL}/cierres/${cierreId}`, {
+        method: 'PUT', // PUT para actu
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, 
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.mensaje || 'Error al actualizar el cierre');
+      }
+
+      Alert.alert('Éxito', 'Cierre actualizado correctamente');
+      router.back();
 
     } catch (error: any) {
-      console.error("Error al editar el cierre:", error);
-      Alert.alert("Error", `No se pudo editar el cierre: ${error.message}`);
+      console.error("Error al guardar el cierre:", error);
+      Alert.alert("Error", `No se pudo guardar el cierre: ${error.message}`);
     }
   };
 
@@ -124,6 +160,7 @@ export default function EditarCierre() {
     <TemplateEditarCierre
       categorias={categoriasOptions}
       zonas={zonasOptions}
+      datosIniciales={datosIniciales}
       onSubmit={handleFormSubmit}
       ubicaciones={ubicacionesSeleccionadas}
       setUbicaciones={setUbicaciones}
