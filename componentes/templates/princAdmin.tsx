@@ -3,22 +3,25 @@ import TituloPestania from "@/componentes/atomos/tituloPestania";
 import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
+import { useAuth } from "@/contexto/autenticacion";
 import { useRouter } from "expo-router";
 import React, { memo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 
 interface Cierre {
   id: string | number;
   titulo: string;
   subtitulo: string[];
 }
-const router = useRouter();
   
-const navegarACrearCierre = () => {
+const PrincAdmin = () => {
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const navegarACrearCierre = () => {
     router.push("/crearCierre");
 };
 
-const PrincAdmin = () => {
   // Estado para manejar la lista de cierres
   const [cierres, setCierres] = useState<Cierre[]>([
     {
@@ -86,6 +89,24 @@ const PrincAdmin = () => {
     setCierreAEliminar(null);
   };
 
+  const handleCerrarSesion = () => {
+    Alert.alert(
+      "Cerrar Sesión",
+      "¿Está seguro que desea cerrar la sesión?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sí, cerrar",
+          style: "destructive",
+          onPress: async () => {
+            await logout(); // Limpia token, rol, etc.
+            router.replace("/"); // Redirige al login
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <HeaderSimple />
@@ -121,7 +142,7 @@ const PrincAdmin = () => {
         />
         <Boton
           texto="Cerrar Sesión"
-          onPress={() => console.log("Cierre de Sesión")}
+          onPress={handleCerrarSesion}
           variante="primario"
           tamaño="grande"
           ancho="ajustado"

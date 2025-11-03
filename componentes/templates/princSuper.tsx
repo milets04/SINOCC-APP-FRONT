@@ -4,6 +4,7 @@ import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import MenuInf from "@/componentes/moleculas/menuInf";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
+import { useAuth } from "@/contexto/autenticacion";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
@@ -56,6 +57,7 @@ const API_BASE = obtenerApiUrl();
 const princSuper= () => {
 
   const router = useRouter();
+  const { logout } = useAuth();
   const [cierres, setCierres] = useState<Cierre[]>([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
@@ -246,6 +248,24 @@ const princSuper= () => {
     );
   }, []);
 
+const handleCerrarSesion = () => {
+  Alert.alert(
+    "Cerrar Sesión",
+    "¿Está seguro que desea cerrar la sesión?",
+    [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Sí, cerrar",
+        style: "destructive",
+        onPress: async () => {
+          await logout(); // 🟢 Limpia token, rol y actualiza el contexto
+          router.replace("/"); // 🔄 Redirige al login
+        },
+      },
+    ]
+  );
+};
+
   // UI
   if (cargando) {
     return (
@@ -310,7 +330,7 @@ const princSuper= () => {
         />
         <Boton
           texto="Cerrar Sesión"
-          onPress={() => console.log("Cierre de Sesión")}
+          onPress={handleCerrarSesion}
           variante="primario"
           tamaño="grande"
           ancho="ajustado"
