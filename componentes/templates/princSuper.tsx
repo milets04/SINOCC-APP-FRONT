@@ -308,6 +308,14 @@ const princSuper= () => {
           ancho="completo"
           estilo={styles.button}
         />
+        <Boton
+          texto="Cerrar Sesión"
+          onPress={() => console.log("Cierre de Sesión")}
+          variante="primario"
+          tamaño="grande"
+          ancho="ajustado"
+          estilo={styles.button}
+        />
       </ScrollView>
 
       {/* Menú Inferior */}
