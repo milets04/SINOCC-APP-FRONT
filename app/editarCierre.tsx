@@ -4,7 +4,7 @@ import TemplateEditarCierre from '@/componentes/templates/templateEditarCierre';
 import { useAuth } from '@/contexto/autenticacion';
 import { useUbicaciones } from '@/contexto/ubicaciones';
 import Constants from 'expo-constants';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 
@@ -50,62 +50,63 @@ export default function EditarCierre() {
   const { ubicaciones: ubicacionesSeleccionadas, setUbicaciones } = useUbicaciones();
   const cierreId = params.cierreId?.toString();
 
-  // 🔹 Obtener zonas
+  // 🔹 Obtener zonas y datos del cierre
   useEffect(() => {
     let yaInicializado = false;
-  const fetchData = async () => {
-    try {
-      if (!cierreId) throw new Error("ID de cierre no proporcionado");
+    const fetchData = async () => {
+      try {
+        if (!cierreId) throw new Error("ID de cierre no proporcionado");
 
-      // 🔹 Cargar zonas y cierre en paralelo
-      const [zonasRes, cierreRes] = await Promise.all([
-        fetch(`${API_URL}/zonas`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_URL}/cierres/${cierreId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+        // 🔹 Cargar zonas y cierre en paralelo
+        const [zonasRes, cierreRes] = await Promise.all([
+          fetch(`${API_URL}/zonas`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_URL}/cierres/${cierreId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-      const zonasData = await zonasRes.json();
-      const cierreData = await cierreRes.json();
+        const zonasData = await zonasRes.json();
+        const cierreData = await cierreRes.json();
 
-      if (!zonasRes.ok) throw new Error("Error al obtener zonas");
-      if (!cierreRes.ok) throw new Error("Error al obtener cierre");
+        if (!zonasRes.ok) throw new Error("Error al obtener zonas");
+        if (!cierreRes.ok) throw new Error("Error al obtener cierre");
 
-      const zonasOpts =
-        zonasData?.datos?.map((z: any) => ({
-          label: z.nombreZona,
-          value: z.id.toString(), 
-        })) || [];
-      setZonasOptions(zonasOpts);
+        const zonasOpts =
+          zonasData?.datos?.map((z: any) => ({
+            label: z.nombreZona,
+            value: z.id.toString(), 
+          })) || [];
+        setZonasOptions(zonasOpts);
 
-      const cierre = cierreData.datos;
-      const ubicacionesData =
-        cierre.ubicaciones?.map((u: any, index: number) => ({
-          id: u.id ?? index,
-          direccion: `Ubicación (${index + 1})`,
-          latitud: Number(u.latitud),
-          longitud: Number(u.longitud),
-        })) || [];
+        const cierre = cierreData.datos;
+        const ubicacionesData =
+          cierre.ubicaciones?.map((u: any, index: number) => ({
+            id: u.id ?? index,
+            direccion: `Ubicación (${index + 1})`,
+            latitud: Number(u.latitud),
+            longitud: Number(u.longitud),
+          })) || [];
 
         if (!yaInicializado && ubicacionesSeleccionadas.length === 0) {
-        setUbicaciones([...ubicacionesData]);
-        yaInicializado = true;
-      } 
+          setUbicaciones([...ubicacionesData]);
+          yaInicializado = true;
+        } 
 
+        setDatosIniciales({
+          categoria: cierre.categoria,
+          zona: cierre.idZona?.toString(), 
+          lugarCierre: cierre.lugarCierre,
+          fechaInicio: cierre.fechaInicio,
+          fechaFin: cierre.fechaFin,
+          horaInicio: cierre.horaInicio || '', 
+          horaFin: cierre.horaFin || '',       
+          motivo: cierre.descripcion,
+          ubicaciones: ubicacionesData,
+        });
 
-    setDatosIniciales({
-      categoria: cierre.categoria,
-      zona: cierre.idZona?.toString(), 
-      lugarCierre: cierre.lugarCierre,
-      fechaInicio: cierre.fechaInicio,
-      fechaFin: cierre.fechaFin,
-      motivo: cierre.descripcion,
-      ubicaciones: ubicacionesData,
-      });
-
-    } catch (err: any) {
+      } catch (err: any) {
         console.error("Error cargando datos:", err);
         Alert.alert("Error", err.message);
       } finally {
@@ -128,6 +129,8 @@ export default function EditarCierre() {
       idZona: Number(data.zona),
       fechaInicio: data.fechaInicio,
       fechaFin: data.fechaFin,
+      horaInicio: data.horaInicio, 
+      horaFin: data.horaFin,      
       descripcion: data.motivo,
       ubicaciones: ubicacionesSeleccionadas.map(ub => ({
         latitud: ub.latitud,

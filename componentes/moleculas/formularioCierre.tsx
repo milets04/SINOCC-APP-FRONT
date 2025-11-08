@@ -8,6 +8,20 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import ItemUbicacion from './itemUbicacionCierre';
 
+const getTodayNormalized = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); 
+  return today;
+};
+
+const parseISODate = (dateString: string): Date => {
+  if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return getTodayNormalized(); 
+  }
+  const parts = dateString.split('-');
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+};
+
 export interface UbicacionData {
   id: string | number;
   direccion: string;
@@ -49,18 +63,17 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   datosIniciales,
 }) => {
   const [formData, setFormData] = useState<FormularioCierreData>({
-  categoria: datosIniciales?.categoria || '',
-  lugarCierre: datosIniciales?.lugarCierre || '',
-  zona: datosIniciales?.zona || '',
-  horaInicio: datosIniciales?.horaInicio || '', // ✅ NUEVO
-  horaFin: datosIniciales?.horaFin || '', // ✅ NUEVO
-  fechaInicio: datosIniciales?.fechaInicio || '',
-  fechaFin: datosIniciales?.fechaFin || '',
-  motivo: datosIniciales?.motivo || '',
-  ubicaciones: datosIniciales?.ubicaciones || [],
-});
+    categoria: datosIniciales?.categoria || '',
+    lugarCierre: datosIniciales?.lugarCierre || '',
+    zona: datosIniciales?.zona || '',
+    horaInicio: datosIniciales?.horaInicio || '',
+    horaFin: datosIniciales?.horaFin || '',
+    fechaInicio: datosIniciales?.fechaInicio || '',
+    fechaFin: datosIniciales?.fechaFin || '',
+    motivo: datosIniciales?.motivo || '',
+    ubicaciones: datosIniciales?.ubicaciones || [],
+  });
 
-  // 🔹 Sincroniza los datos iniciales y las ubicaciones cuando cambian
   useEffect(() => {
     if (datosIniciales) {
       setFormData((prev) => ({
@@ -68,6 +81,8 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         categoria: datosIniciales.categoria || prev.categoria,
         lugarCierre: datosIniciales.lugarCierre || prev.lugarCierre,
         zona: datosIniciales.zona || prev.zona,
+        horaInicio: datosIniciales.horaInicio || prev.horaInicio,
+        horaFin: datosIniciales.horaFin || prev.horaFin,
         fechaInicio: datosIniciales.fechaInicio || prev.fechaInicio,
         fechaFin: datosIniciales.fechaFin || prev.fechaFin,
         motivo: datosIniciales.motivo || prev.motivo,
@@ -89,7 +104,8 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   const [showFinPicker, setShowFinPicker] = useState(false);
 
   const handleSelectFechaInicio = (date: string) => {
-    if (formData.fechaFin && new Date(date) > new Date(formData.fechaFin)) {
+    setShowInicioPicker(false); 
+    if (formData.fechaFin && parseISODate(date) > parseISODate(formData.fechaFin)) {
       setFormData({ ...formData, fechaInicio: date, fechaFin: '' });
     } else {
       setFormData({ ...formData, fechaInicio: date });
@@ -97,7 +113,8 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   };
 
   const handleSelectFechaFin = (date: string) => {
-    if (formData.fechaInicio && new Date(date) < new Date(formData.fechaInicio)) {
+    setShowFinPicker(false); 
+    if (formData.fechaInicio && parseISODate(date) < parseISODate(formData.fechaInicio)) {
       Alert.alert("Error", "La fecha de fin no puede ser anterior a la fecha de inicio.");
       return;
     }
@@ -105,11 +122,49 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   };
 
   const handleSubmit = () => {
-    if (!formData.categoria || !formData.lugarCierre || !formData.zona || 
-        !formData.fechaInicio || !formData.fechaFin || !formData.motivo) {
-      Alert.alert('Error', 'Por favor complete todos los campos');
+    const { categoria, lugarCierre, zona, motivo, fechaInicio, fechaFin, horaInicio, horaFin } = formData;
+
+    if (!categoria || !lugarCierre || !zona || !motivo) {
+      Alert.alert('Error', 'Por favor complete todos los campos (Categoría, Lugar, Zona, Motivo).');
       return;
     }
+
+    const hasDatePair = !!fechaInicio && !!fechaFin;
+    const hasHourPair = !!horaInicio && !!horaFin;
+    const hasPartialDate = (!!fechaInicio && !fechaFin) || (!fechaInicio && !!fechaFin);
+    const hasPartialHour = (!!horaInicio && !horaFin) || (!horaInicio && !!horaFin);
+
+    if (hasPartialDate) {
+      Alert.alert('Error de Fechas', 'Si selecciona una fecha, debe seleccionar ambas (inicio y fin).');
+      return;
+    }
+    if (hasPartialHour) {
+      Alert.alert('Error de Horas', 'Si selecciona una hora, debe seleccionar ambas (inicio y fin).');
+      return;
+    }
+
+    if (!hasDatePair && !hasHourPair) {
+      Alert.alert('Error de Duración', 'Debe especificar un rango de fechas O un rango de horas para el cierre.');
+      return;
+    }
+
+    if (hasDatePair && parseISODate(fechaFin) < parseISODate(fechaInicio)) {
+      Alert.alert("Error de Fechas", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+      return;
+    }
+    
+    if (hasHourPair && (!hasDatePair || fechaInicio === fechaFin)) {
+      if (horaFin < horaInicio) {
+        Alert.alert("Error de Horas", "La hora de fin no puede ser anterior a la hora de inicio para un cierre en el mismo día.");
+        return;
+      }
+    }
+
+    if (ubicacionesSeleccionadas.length === 0) {
+      Alert.alert('Error', 'Por favor agregue al menos una ubicación');
+      return;
+    }
+
     const dataCompleta = {
       ...formData,
       ubicaciones: ubicacionesSeleccionadas,
@@ -144,6 +199,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         value={formData.zona}
         onValueChange={(value) => setFormData({ ...formData, zona: value })}
       />
+      
       <View style={styles.filaFechas}>
         <Horas
           placeholder="Hora inicio"
@@ -161,20 +217,13 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
           disabled={!formData.horaInicio}
         />
       </View>
+      
       <View style={styles.filaFechas}>
         <Pressable
           style={styles.fakeInput} 
-          onPress={() => {
-            console.log('🔵 CLICK en fecha inicio');
-            setShowInicioPicker(true);
-          }}
+          onPress={() => setShowInicioPicker(true)}
         >
-          <Text 
-            style={[
-              styles.fakeInputText,
-              formData.fechaInicio ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder
-            ]}
-          >
+          <Text style={[styles.fakeInputText, formData.fechaInicio ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder]}>
             {formData.fechaInicio || "Fecha inicio"}
           </Text>
         </Pressable>
@@ -188,12 +237,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
             }
           }}
         >
-          <Text 
-            style={[
-              styles.fakeInputText,
-              formData.fechaFin ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder
-            ]}
-          >
+          <Text style={[styles.fakeInputText, formData.fechaFin ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder]}>
             {formData.fechaFin || "Fecha fin"}
           </Text>
         </Pressable>
@@ -204,7 +248,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         onClose={() => setShowInicioPicker(false)}
         onSelectDate={handleSelectFechaInicio}
         selectedDate={formData.fechaInicio}
-        minimumDate={new Date()} // ✅ Esto está bien
+        minimumDate={getTodayNormalized()}
         title="Seleccionar fecha de inicio"
       />
 
@@ -213,7 +257,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         onClose={() => setShowFinPicker(false)}
         onSelectDate={handleSelectFechaFin}
         selectedDate={formData.fechaFin}
-        minimumDate={formData.fechaInicio ? new Date(formData.fechaInicio) : new Date()}
+        minimumDate={parseISODate(formData.fechaInicio)} 
         title="Seleccionar fecha de fin"
       />
 
@@ -242,6 +286,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
          <ScrollView 
            style={styles.contenedorUbicaciones}
            contentContainerStyle={styles.listaUbicaciones}
+           showsVerticalScrollIndicator={true}
          >
            {ubicacionesSeleccionadas.length === 0 ? (
              <Text style={styles.textoVacio}>
@@ -258,6 +303,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
            )}
          </ScrollView>
        </View>
+       
       <View style={styles.botonContainer}>
         <Boton
           texto={tituloBoton}

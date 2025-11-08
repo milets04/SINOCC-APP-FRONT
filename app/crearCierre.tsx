@@ -6,7 +6,7 @@ import { useUbicaciones } from '@/contexto/ubicaciones';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 
 const obtenerApiUrl = () => { 
   try {
@@ -88,18 +88,26 @@ export default function PantallaCrearCierre() {
   }, [token]); 
 
   const handleFormSubmit = async (data: FormularioCierreData) => {
-    const payload = {
+    const payload: any = {
       categoria: data.categoria.toString(),
       lugarCierre: data.lugarCierre,
       idZona: Number(data.zona),
-      fechaInicio: data.fechaInicio,
-      fechaFin: data.fechaFin,
       descripcion: data.motivo,
       ubicaciones: data.ubicaciones.map(ub => ({
         latitud: ub.latitud,
         longitud: ub.longitud,
       })),
     };
+
+    if (data.fechaInicio && data.fechaFin) {
+      payload.fechaInicio = data.fechaInicio;
+      payload.fechaFin = data.fechaFin;
+    }
+
+    if (data.horaInicio && data.horaFin) {
+      payload.horaInicio = data.horaInicio;
+      payload.horaFin = data.horaFin;
+    }
 
     try {
       console.log("Enviando al backend:", JSON.stringify(payload, null, 2));
@@ -113,7 +121,16 @@ export default function PantallaCrearCierre() {
         body: JSON.stringify(payload),
       });
 
-      const responseData = await response.json();
+      const responseText = await response.text();
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Respuesta no JSON:", responseText);
+        throw new Error(`Error ${response.status}: Respuesta no válida del servidor`);
+      }
+
+      console.log("Respuesta del backend:", JSON.stringify(responseData, null, 2));
 
       if (!response.ok) {
         throw new Error(responseData.mensaje || 'Error al crear el cierre');
@@ -121,7 +138,6 @@ export default function PantallaCrearCierre() {
 
       Alert.alert('Éxito', '¡Cierre creado con éxito!');
       setUbicaciones([]);
-      
       router.back();
 
     } catch (error: any) {
@@ -130,8 +146,13 @@ export default function PantallaCrearCierre() {
     }
   };
 
+
   if (isLoading) {
-    return null; 
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#146BF6" />
+      </View>
+    );
   }
 
   return (
@@ -144,3 +165,11 @@ export default function PantallaCrearCierre() {
     />
   );
 }
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+});
