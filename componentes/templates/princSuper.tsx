@@ -3,22 +3,31 @@ import TituloPestania from "@/componentes/atomos/tituloPestania";
 import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import MenuInf from "@/componentes/moleculas/menuInf";
-import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
 import { useAuth } from "@/contexto/autenticacion";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import React, { memo, useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 type Cierre = {
   id: number;
   categoria: string | null;
   lugarCierre: string;
   idZona: number | null;
-  fechaInicio: string;
-  fechaFin: string;
+  fechaInicio: string | null; // 🟢 Puede venir nulo
+  fechaFin: string | null;
+  horaInicio: string | null; // 🟢 Nuevos campos agregados
+  horaFin: string | null;
   descripcion: string | null;
   createdAt: string;
   modifiedAt: string;
@@ -31,7 +40,6 @@ type Cierre = {
   }>;
 };
 
-//  Detección automática de IP y fallback
 const obtenerApiUrl = () => {
   try {
     const host =
@@ -54,15 +62,13 @@ const obtenerApiUrl = () => {
 
 const API_BASE = obtenerApiUrl();
 
-const princSuper= () => {
-
+const princSuper = () => {
   const router = useRouter();
   const { logout } = useAuth();
   const [cierres, setCierres] = useState<Cierre[]>([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [modalVisible, setModalVisible] = useState(false);
   const [cierreAEliminar, setCierreAEliminar] = useState<Cierre | null>(null);
 
@@ -70,10 +76,9 @@ const princSuper= () => {
     router.push("/gestionAdmins");
   };
 
-  // ✅ Obtener token almacenado
   const obtenerToken = async (): Promise<string | null> => {
     try {
-      const token = await AsyncStorage.getItem("userToken"); // ✅ Clave corregida
+      const token = await AsyncStorage.getItem("userToken");
       console.log("🔑 Token obtenido:", token);
       return token;
     } catch (err) {
@@ -82,7 +87,6 @@ const princSuper= () => {
     }
   };
 
-  //  Obtener cierres desde el backend (con fallback)
   const obtenerCierres = useCallback(async () => {
     setError(null);
     setCargando(true);
@@ -103,7 +107,6 @@ const princSuper= () => {
       console.warn("⚠️ Error con URL principal:", err1);
 
       try {
-        // Fallback: usar localhost
         const fallback = "http://localhost:3000/api/cierres";
         const responseFallback = await fetch(fallback);
         const dataFallback = await responseFallback.json();
@@ -139,10 +142,46 @@ const princSuper= () => {
     obtenerCierres();
   }, [obtenerCierres]);
 
-  const calcularDuracion = (inicio: string, fin: string) => {
-    const f1 = new Date(inicio);
-    const f2 = new Date(fin);
-    return Math.ceil((f2.getTime() - f1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  // 🟢 Función para calcular duración flexible (en días y horas)
+  const calcularDuracion = (
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    horaInicio: string | null,
+    horaFin: string | null
+  ) => {
+    try {
+      // Si hay fechas
+      if (fechaInicio && fechaFin) {
+        const f1 = new Date(fechaInicio);
+        const f2 = new Date(fechaFin);
+        let dias = Math.ceil((f2.getTime() - f1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+        // Si también hay horas
+        if (horaInicio && horaFin) {
+          const [h1, m1] = horaInicio.split(":").map(Number);
+          const [h2, m2] = horaFin.split(":").map(Number);
+          const totalHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
+          const horas = totalHoras > 0 ? totalHoras : 0;
+          return `Duración: ${dias} día${dias !== 1 ? "s" : ""} y ${horas} hora${horas !== 1 ? "s" : ""}`;
+        }
+
+        return `Duración: ${dias} día${dias !== 1 ? "s" : ""}`;
+      }
+
+      // Si solo hay horas
+      if (horaInicio && horaFin) {
+        const [h1, m1] = horaInicio.split(":").map(Number);
+        const [h2, m2] = horaFin.split(":").map(Number);
+        const totalHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
+        const horas = totalHoras > 0 ? totalHoras : 0;
+        return `Duración: ${horas} hora${horas !== 1 ? "s" : ""}`;
+      }
+
+      return "Duración desconocida";
+    } catch (error) {
+      console.error("Error al calcular duración:", error);
+      return "Duración desconocida";
+    }
   };
 
   const navegarACrearCierre = useCallback(() => {
@@ -158,8 +197,10 @@ const princSuper= () => {
           lugarCierre: cierre.lugarCierre,
           categoria: cierre.categoria || "",
           descripcion: cierre.descripcion || "",
-          fechaInicio: cierre.fechaInicio,
-          fechaFin: cierre.fechaFin,
+          fechaInicio: cierre.fechaInicio || "",
+          fechaFin: cierre.fechaFin || "",
+          horaInicio: cierre.horaInicio || "", // 🟢 Se pasan también las horas
+          horaFin: cierre.horaFin || "",
           idZona: cierre.idZona?.toString() || "",
         },
       });
@@ -167,35 +208,6 @@ const princSuper= () => {
     [router]
   );
 
-  const handleMostrarModalEliminar = (cierre: Cierre) => {
-    setCierreAEliminar(cierre);
-    setModalVisible(true);
-  };
-
-  // Función para confirmar y eliminar el cierre
-  const handleConfirmarEliminar = () => {
-    if (cierreAEliminar) {
-      // Eliminar el cierre del estado
-      setCierres(cierres.filter((c) => c.id !== cierreAEliminar.id));
-      
-      console.log('Cierre eliminado:', cierreAEliminar.lugarCierre);
-      
-      // Aquí puedes agregar la lógica para eliminar del backend/API
-      // Ejemplo: await deleteCierre(cierreAEliminar.id);
-    }
-    
-    // Cerrar modal y limpiar estado
-    setModalVisible(false);
-    setCierreAEliminar(null);
-  };
-
-  // Función para cancelar la eliminación
-  const handleCancelarEliminar = () => {
-    setModalVisible(false);
-    setCierreAEliminar(null);
-  };
-
-  //  Eliminar cierre con token
   const handleEliminar = useCallback(async (cierre: Cierre) => {
     Alert.alert(
       "Confirmar eliminación",
@@ -208,10 +220,7 @@ const princSuper= () => {
           onPress: async () => {
             const token = await obtenerToken();
             if (!token) {
-              Alert.alert(
-                "Error",
-                "No se encontró el token. Inicia sesión nuevamente."
-              );
+              Alert.alert("Error", "No se encontró el token. Inicia sesión nuevamente.");
               return;
             }
 
@@ -230,17 +239,11 @@ const princSuper= () => {
                 setCierres((prev) => prev.filter((c) => c.id !== cierre.id));
                 Alert.alert("✅ Éxito", "Cierre eliminado correctamente.");
               } else {
-                Alert.alert(
-                  "Error",
-                  data.mensaje || "No se pudo eliminar el cierre."
-                );
+                Alert.alert("Error", data.mensaje || "No se pudo eliminar el cierre.");
               }
             } catch (err) {
               console.error("❌ Error al eliminar:", err);
-              Alert.alert(
-                "Error",
-                "No se pudo conectar con el servidor para eliminar el cierre."
-              );
+              Alert.alert("Error", "No se pudo conectar con el servidor para eliminar el cierre.");
             }
           },
         },
@@ -248,23 +251,19 @@ const princSuper= () => {
     );
   }, []);
 
-const handleCerrarSesion = () => {
-  Alert.alert(
-    "Cerrar Sesión",
-    "¿Está seguro que desea cerrar la sesión?",
-    [
+  const handleCerrarSesion = () => {
+    Alert.alert("Cerrar Sesión", "¿Está seguro que desea cerrar la sesión?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Sí, cerrar",
         style: "destructive",
         onPress: async () => {
-          await logout(); // 🟢 Limpia token, rol y actualiza el contexto
-          router.replace("/"); // 🔄 Redirige al login
+          await logout();
+          router.replace("/");
         },
       },
-    ]
-  );
-};
+    ]);
+  };
 
   // UI
   if (cargando) {
@@ -284,40 +283,28 @@ const handleCerrarSesion = () => {
       <HeaderSimple />
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refrescando} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refrescando} onRefresh={onRefresh} />}
       >
         <TituloPestania style={styles.title}>
           Cierres Activos {cierres.length > 0 && `(${cierres.length})`}
         </TituloPestania>
 
         {cierres.length === 0 ? (
-          <Text style={styles.emptyText}>
-            No hay cierres activos en este momento.
-          </Text>
+          <Text style={styles.emptyText}>No hay cierres activos en este momento.</Text>
         ) : (
-          cierres.map((cierre) => {
-            const duracionDias = calcularDuracion(
-              cierre.fechaInicio,
-              cierre.fechaFin
-            );
-            return (
-              <CardCierre
-                key={cierre.id}
-                titulo={cierre.lugarCierre}
-                subtitulo={[
-                  `Zona: ${cierre.zona?.nombreZona || "Sin zona"}`,
-                  `Duración: ${duracionDias} día${
-                    duracionDias !== 1 ? "s" : ""
-                  }`,
-                  cierre.descripcion || "Sin descripción",
-                ]}
-                onPressEditar={() => navegarAEditarCierre(cierre)}
-                onPressEliminar={() => handleEliminar(cierre)}
-              />
-            );
-          })
+          cierres.map((cierre) => (
+            <CardCierre
+              key={cierre.id}
+              titulo={cierre.lugarCierre}
+              subtitulo={[
+                `Zona: ${cierre.zona?.nombreZona || "Sin zona"}`,
+                calcularDuracion(cierre.fechaInicio, cierre.fechaFin, cierre.horaInicio, cierre.horaFin),
+                cierre.descripcion || "Sin descripción",
+              ]}
+              onPressEditar={() => navegarAEditarCierre(cierre)}
+              onPressEliminar={() => handleEliminar(cierre)}
+            />
+          ))
         )}
 
         <Boton
@@ -338,27 +325,11 @@ const handleCerrarSesion = () => {
         />
       </ScrollView>
 
-      {/* Menú Inferior */}
       <MenuInf
         homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
         usersIcon={<Ionicons name="people-outline" size={28} color="#146BF6" />}
         onHomePress={() => console.log("Home pressed")}
         onUsersPress={navegarAGestionAdmins}
-      />
-
-      {/* Modal de Confirmación */}
-      <ModalConfirmacion
-        visible={modalVisible}
-        titulo="¿Eliminar cierre?"
-        mensaje={
-          cierreAEliminar
-            ? `¿Está seguro que desea eliminar el cierre "${cierreAEliminar.lugarCierre}"? Esta acción no se puede deshacer.`
-            : "¿Está seguro que desea eliminar este cierre?"
-        }
-        textoConfirmar="Sí, eliminar"
-        textoCancelar="No, cancelar"
-        onConfirmar={handleConfirmarEliminar}
-        onCancelar={handleCancelarEliminar}
       />
     </View>
   );
@@ -373,25 +344,10 @@ const styles = StyleSheet.create({
   },
   content: { alignItems: "center", paddingBottom: 50, paddingTop: 10 },
   title: { marginVertical: 20, marginHorizontal: 6, alignSelf: "flex-start" },
-  centeredContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  centeredContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 10, fontSize: 16, color: "#666" },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginTop: 30,
-  },
-  button: {
-    marginTop: 20,
-  },
-  emptyContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
+  emptyText: { fontSize: 16, color: "#666", textAlign: "center", marginTop: 30 },
+  button: { marginTop: 20 },
 });
 
 export default memo(princSuper);
