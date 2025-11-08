@@ -40,11 +40,18 @@ const Mapa: React.FC<MapaProps> = ({
   const [region, setRegion] = useState<Region>(initialRegion);
 
   const handleMapPress = (event: any) => {
-    if (onMapPress) {
-      const { latitude, longitude } = event.nativeEvent.coordinate;
-      onMapPress({ latitude, longitude });
+    try {
+      const coordinate = event?.nativeEvent?.coordinate;
+      if (!coordinate || coordinate.latitude === undefined || coordinate.longitude === undefined) {
+        console.warn("⚠️ Evento de mapa sin coordenadas válidas:", event.nativeEvent);
+        return;
+      }
+      onMapPress?.(coordinate);
+    } catch (error) {
+      console.error("Error al manejar evento de mapa:", error);
     }
   };
+
 
   const handleMarcadorPress = (ubicacion: UbicacionCierre) => {
     if (onMarcadorPress) {
@@ -88,7 +95,10 @@ const Mapa: React.FC<MapaProps> = ({
             }}
             title={ubicacion.titulo}
             description={ubicacion.descripcion}
-            onPress={() => handleMarcadorPress(ubicacion)}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              handleMarcadorPress(ubicacion);
+            }}
           >
             <MarcadorMapa
               size={40}
