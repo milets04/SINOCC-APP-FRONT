@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import Boton from '@/componentes/atomos/boton';
+import CalendarioPersonalizado from '@/componentes/atomos/calendario';
+import DescripcionTitulo from '@/componentes/atomos/descripcionTitulo';
+import Horas from '@/componentes/atomos/horas';
+import Input from '@/componentes/atomos/input';
+import Select, { SelectOption } from '@/componentes/atomos/selectFormulario';
+import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Boton from '../atomos/boton';
-import CalendarioPersonalizado from '../atomos/calendario';
-import DescripcionTitulo from '../atomos/descripcionTitulo';
-import Input from '../atomos/input';
-import Select, { SelectOption } from '../atomos/selectFormulario';
 import ItemUbicacion from './itemUbicacionCierre';
 
 export interface UbicacionData {
@@ -18,6 +19,8 @@ export interface FormularioCierreData {
   categoria: string | number;
   lugarCierre: string;
   zona: string | number;
+  horaInicio: string; 
+  horaFin: string; 
   fechaInicio: string;
   fechaFin: string;
   motivo: string;
@@ -46,14 +49,16 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   datosIniciales,
 }) => {
   const [formData, setFormData] = useState<FormularioCierreData>({
-    categoria: datosIniciales?.categoria || '',
-    lugarCierre: datosIniciales?.lugarCierre || '',
-    zona: datosIniciales?.zona || '',
-    fechaInicio: datosIniciales?.fechaInicio || '',
-    fechaFin: datosIniciales?.fechaFin || '',
-    motivo: datosIniciales?.motivo || '',
-    ubicaciones: datosIniciales?.ubicaciones || [],
-  });
+  categoria: datosIniciales?.categoria || '',
+  lugarCierre: datosIniciales?.lugarCierre || '',
+  zona: datosIniciales?.zona || '',
+  horaInicio: datosIniciales?.horaInicio || '', // ✅ NUEVO
+  horaFin: datosIniciales?.horaFin || '', // ✅ NUEVO
+  fechaInicio: datosIniciales?.fechaInicio || '',
+  fechaFin: datosIniciales?.fechaFin || '',
+  motivo: datosIniciales?.motivo || '',
+  ubicaciones: datosIniciales?.ubicaciones || [],
+});
 
   // 🔹 Sincroniza los datos iniciales y las ubicaciones cuando cambian
   useEffect(() => {
@@ -139,7 +144,23 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
         value={formData.zona}
         onValueChange={(value) => setFormData({ ...formData, zona: value })}
       />
-
+      <View style={styles.filaFechas}>
+        <Horas
+          placeholder="Hora inicio"
+          value={formData.horaInicio}
+          onValueChange={(time) => setFormData({ ...formData, horaInicio: time })}
+          width={152}
+          height={47}
+        />
+        <Horas
+          placeholder="Hora fin"
+          value={formData.horaFin}
+          onValueChange={(time) => setFormData({ ...formData, horaFin: time })}
+          width={152}
+          height={47}
+          disabled={!formData.horaInicio}
+        />
+      </View>
       <View style={styles.filaFechas}>
         <Pressable
           style={styles.fakeInput} 

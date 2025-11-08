@@ -1,10 +1,10 @@
 import { SelectOption } from '@/componentes/atomos/selectFormulario';
 import TituloPestania from '@/componentes/atomos/tituloPestania';
 import FormularioCierre, { FormularioCierreData, UbicacionData } from '@/componentes/moleculas/formularioCierre';
+import HeaderSimple from '@/componentes/moleculas/headerSimple';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
-import HeaderSimple from '../moleculas/headerSimple';
 interface TemplateCrearCierreProps {
   categorias?: SelectOption[];
   zonas?: SelectOption[];
@@ -21,9 +21,7 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
   setUbicaciones, 
 }) => {
   const router = useRouter(); 
-  
-  //¡ELIMINADO! Ya no usamos el hook aquí
-  // const { ubicaciones: ubicacionesSeleccionadas, setUbicaciones } = useUbicaciones();
+
   const ubicacionesSeleccionadas = ubicaciones;
   const handleEliminarUbicacion = (id: string | number) => {
     setUbicaciones(
