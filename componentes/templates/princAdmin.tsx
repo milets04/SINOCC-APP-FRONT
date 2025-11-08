@@ -5,90 +5,101 @@ import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
 import { useAuth } from "@/contexto/autenticacion";
 import { useRouter } from "expo-router";
-import React, { memo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import React, { memo, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";
+
+const API_URL = "https://tu-api.com/api"; // 🔧 Ajusta la URL de tu backend
 
 interface Cierre {
-  id: string | number;
-  titulo: string;
-  subtitulo: string[];
+  id: number;
+  categoria: string;
+  lugarCierre: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  horaInicio?: string;
+  horaFin?: string;
+  descripcion?: string;
+  zona?: string;
 }
-  
+
 const PrincAdmin = () => {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, token } = useAuth();
 
-  const navegarACrearCierre = () => {
-    router.push("/crearCierre");
-};
-
-  // Estado para manejar la lista de cierres
-  const [cierres, setCierres] = useState<Cierre[]>([
-    {
-      id: 1,
-      titulo: "Av. América y Tarija",
-      subtitulo: ["Zona", "Duración: 2 días", "Motivo: Amago de tuberías"],
-    },
-    {
-      id: 2,
-      titulo: "Av. América y Libertador",
-      subtitulo: ["Zona", "Duración: 2 días", "Motivo: Amago de tuberías"],
-    },
-    {
-      id: 3,
-      titulo: "Mel tonta",
-      subtitulo: ["Zona", "Duración: 2 días", "Motivo: Amago de tuberías"],
-    },
-    {
-      id: 4,
-      titulo: "Hola como estas",
-      subtitulo: ["Zona", "Duración: 2 días", "Motivo: Amago de tuberías"],
-    },
-    {
-      id: 5,
-      titulo: "Mel tonta",
-      subtitulo: ["Zona", "Duración: 2 días", "Motivo: Amago de tuberías"],
-    },
-    {
-      id: 6,
-      titulo: "Mel tonta",
-      subtitulo: ["Zona", "Duración: 2 días", "Motivo: Amago de tuberías"],
-    },
-  ]);
+  const [cierres, setCierres] = useState<Cierre[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Estados para el modal de confirmación
   const [modalVisible, setModalVisible] = useState(false);
   const [cierreAEliminar, setCierreAEliminar] = useState<Cierre | null>(null);
 
-  // Función para mostrar el modal de confirmación
+  // 🔹 Obtener cierres desde el backend
+  const obtenerCierres = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/cierres`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Error al obtener los cierres");
+
+      const data = await response.json();
+      console.log("Cierres obtenidos:", data);
+      setCierres(data);
+    } catch (error) {
+      console.error("Error al obtener cierres:", error);
+      Alert.alert("Error", "No se pudieron cargar los cierres activos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    obtenerCierres();
+  }, []);
+
+  // 🔹 Mostrar modal de eliminación
   const handleMostrarModalEliminar = (cierre: Cierre) => {
     setCierreAEliminar(cierre);
     setModalVisible(true);
   };
 
-  // Función para confirmar y eliminar el cierre
-  const handleConfirmarEliminar = () => {
-    if (cierreAEliminar) {
-      // Eliminar el cierre del estado
-      setCierres(cierres.filter((c) => c.id !== cierreAEliminar.id));
-      
-      console.log('Cierre eliminado:', cierreAEliminar.titulo);
-      
-      // Aquí puedes agregar la lógica para eliminar del backend/API
-      // Ejemplo: await deleteCierre(cierreAEliminar.id);
+  // 🔹 Confirmar eliminación (con API)
+  const handleConfirmarEliminar = async () => {
+    if (!cierreAEliminar) return;
+
+    try {
+      const response = await fetch(`${API_URL}/cierres/${cierreAEliminar.id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Error al eliminar el cierre");
+
+      setCierres((prev) => prev.filter((c) => c.id !== cierreAEliminar.id));
+      Alert.alert("Éxito", "Cierre eliminado correctamente.");
+    } catch (error) {
+      console.error("Error al eliminar cierre:", error);
+      Alert.alert("Error", "No se pudo eliminar el cierre.");
+    } finally {
+      setModalVisible(false);
+      setCierreAEliminar(null);
     }
-    
-    // Cerrar modal y limpiar estado
-    setModalVisible(false);
-    setCierreAEliminar(null);
   };
 
-  // Función para cancelar la eliminación
+  // 🔹 Cancelar eliminación
   const handleCancelarEliminar = () => {
     setModalVisible(false);
     setCierreAEliminar(null);
   };
 
+  // 🔹 Cerrar sesión
   const handleCerrarSesion = () => {
     Alert.alert(
       "Cerrar Sesión",
@@ -99,12 +110,17 @@ const PrincAdmin = () => {
           text: "Sí, cerrar",
           style: "destructive",
           onPress: async () => {
-            await logout(); // Limpia token, rol, etc.
-            router.replace("/"); // Redirige al login
+            await logout();
+            router.replace("/");
           },
         },
       ]
     );
+  };
+
+  // 🔹 Navegar a crear cierre
+  const navegarACrearCierre = () => {
+    router.push("/crearCierre");
   };
 
   return (
@@ -112,8 +128,10 @@ const PrincAdmin = () => {
       <HeaderSimple />
       <ScrollView contentContainerStyle={styles.content}>
         <TituloPestania style={styles.title}>Cierres Activos</TituloPestania>
-        
-        {cierres.length === 0 ? (
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 50 }} />
+        ) : cierres.length === 0 ? (
           <View style={styles.emptyContainer}>
             <TituloPestania style={styles.emptyText}>
               No hay cierres activos
@@ -123,15 +141,23 @@ const PrincAdmin = () => {
           cierres.map((cierre) => (
             <CardCierre
               key={cierre.id}
-              titulo={cierre.titulo}
-              subtitulo={cierre.subtitulo}
-              onPressEditar={() => console.log("Editar cierre", cierre.titulo)}
+              titulo={cierre.lugarCierre || "Sin título"}
+              subtitulo={[
+                cierre.zona ? `Zona: ${cierre.zona}` : "",
+                cierre.fechaInicio && cierre.fechaFin
+                  ? `Duración: ${cierre.fechaInicio} a ${cierre.fechaFin}`
+                  : cierre.horaInicio && cierre.horaFin
+                  ? `Horario: ${cierre.horaInicio} - ${cierre.horaFin}`
+                  : "",
+                cierre.descripcion ? `Motivo: ${cierre.descripcion}` : "",
+              ].filter(Boolean)} // 🔹 Elimina los vacíos
+              onPressEditar={() => console.log("Editar cierre", cierre.id)}
               onPressEliminar={() => handleMostrarModalEliminar(cierre)}
               style={styles.card}
             />
           ))
         )}
-        
+
         <Boton
           texto="Crear nuevo cierre"
           onPress={navegarACrearCierre}
@@ -140,10 +166,11 @@ const PrincAdmin = () => {
           ancho="completo"
           estilo={styles.button}
         />
+
         <Boton
           texto="Cerrar Sesión"
           onPress={handleCerrarSesion}
-          variante="primario"
+          variante="secundario"
           tamaño="grande"
           ancho="ajustado"
           estilo={styles.button}
@@ -156,7 +183,7 @@ const PrincAdmin = () => {
         titulo="¿Eliminar cierre?"
         mensaje={
           cierreAEliminar
-            ? `¿Está seguro que desea eliminar el cierre "${cierreAEliminar.titulo}"? Esta acción no se puede deshacer.`
+            ? `¿Está seguro que desea eliminar el cierre "${cierreAEliminar.lugarCierre}"?`
             : "¿Está seguro que desea eliminar este cierre?"
         }
         textoConfirmar="Sí, eliminar"
@@ -193,11 +220,11 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     paddingVertical: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyText: {
     fontSize: 16,
-    color: '#999999',
+    color: "#999999",
   },
 });
 
