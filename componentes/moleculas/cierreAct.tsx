@@ -53,7 +53,7 @@ const CierreAct = ({
         <View style={styles.rowBottom}>
           <View style={styles.startGroup}>
             <Icono icon="clock" library="evil" size={20} color="#6B7280" />
-            <DescripcionNoti texto={`Started: ${horaInicio}`} estilo={styles.muted} />
+            <DescripcionNoti texto={`Inicio: ${horaInicio}`} estilo={styles.muted} />
           </View>
           <DescripcionNoti texto={`Est. ${estimado}`} estilo={styles.muted} />
         </View>
