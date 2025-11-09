@@ -21,6 +21,7 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
   const router = useRouter();
   const { ubicaciones, setUbicaciones, datosFormularioTemp, setDatosFormularioTemp } = useUbicaciones();
 
+
   const handleEliminarUbicacion = (id: string | number) => {
     setUbicaciones(ubicaciones.filter((ub) => ub.id !== id));
   };

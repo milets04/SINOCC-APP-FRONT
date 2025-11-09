@@ -31,6 +31,7 @@ export const UbicacionesProvider = ({ children }: { children: ReactNode }) => {
   const [ubicaciones, setUbicaciones] = useState<UbicacionData[]>([]);
   const [datosFormularioTemp, setDatosFormularioTemp] = useState<DatosFormularioTemp | null>(null);
 
+
   return (
     <UbicacionesContext.Provider value={{ 
       ubicaciones, 
