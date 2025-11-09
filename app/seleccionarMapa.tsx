@@ -1,10 +1,9 @@
-import Mapa, { UbicacionCierre } from '@/componentes/moleculas/mapa'; // Ajusta la ruta
+import Boton from '@/componentes/atomos/boton';
+import Mapa, { UbicacionCierre } from '@/componentes/moleculas/mapa';
+import { UbicacionData, useUbicaciones } from '@/contexto/ubicaciones';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Dimensions, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-
-import Boton from '@/componentes/atomos/boton';
-import { UbicacionData, useUbicaciones } from '@/contexto/ubicaciones';
 
 export default function PantallaSeleccionarMapa() {
   const router = useRouter();

@@ -50,6 +50,7 @@ interface FormularioCierreProps {
   onEliminarUbicacion?: (id: string | number) => void;
   tituloBoton?: string;
   datosIniciales?: Partial<FormularioCierreData>;
+  onGuardarDatosTemp?: (datos: FormularioCierreData) => void; 
 }
 
 const FormularioCierre: React.FC<FormularioCierreProps> = ({
@@ -61,6 +62,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   onEliminarUbicacion,
   tituloBoton = 'Crear',
   datosIniciales,
+  onGuardarDatosTemp, 
 }) => {
   const [formData, setFormData] = useState<FormularioCierreData>({
     categoria: datosIniciales?.categoria || '',
@@ -171,7 +173,12 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     };
     onSubmit(dataCompleta);
   };
-
+  const handleAbrirMapa = () => {
+    if (onGuardarDatosTemp) {
+      onGuardarDatosTemp(formData);
+    }
+    onAbrirMapa();
+  };
   return (
     <View style={styles.container}>
       <Select
@@ -276,12 +283,12 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
          <View style={styles.headerUbicacion}>
            <DescripcionTitulo texto="Agregar ubicación" />
            <Boton
-             texto="ABRIR MAPA"
-             onPress={onAbrirMapa}
-             variante="primario"
-             estilo={styles.botonMapa}
-             estiloTexto={styles.textoBotonMapa}
-           />
+              texto="ABRIR MAPA"
+              onPress={handleAbrirMapa}
+              variante="primario"
+              estilo={styles.botonMapa}
+              estiloTexto={styles.textoBotonMapa}
+            />
          </View>
          <ScrollView 
            style={styles.contenedorUbicaciones}
