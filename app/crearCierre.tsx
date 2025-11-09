@@ -160,8 +160,6 @@ export default function PantallaCrearCierre() {
       categorias={categoriasOptions}
       zonas={zonasOptions}
       onSubmit={handleFormSubmit}
-      ubicaciones={ubicacionesSeleccionadas}
-      setUbicaciones={setUbicaciones}
     />
   );
 }
