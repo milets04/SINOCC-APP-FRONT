@@ -55,19 +55,15 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
 
     if (onSubmit) {
       onSubmit(dataCompleta);
-      // Limpiar datos temporales después de enviar
       setDatosFormularioTemp(null);
       setUbicaciones([]);
     }
   };
 
-  // Limpiar datos cuando se desmonta el componente (opcional)
   useEffect(() => {
-    return () => {
-      // Si quieres limpiar al salir de la pantalla, descomenta estas líneas:
-      // setDatosFormularioTemp(null);
-      // setUbicaciones([]);
-    };
+      if (!datosFormularioTemp) {
+    setUbicaciones([]);
+  }
   }, []);
 
   return (
