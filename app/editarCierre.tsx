@@ -89,10 +89,10 @@ export default function EditarCierre() {
             longitud: Number(u.longitud),
           })) || [];
 
-        if (!yaInicializado && ubicacionesSeleccionadas.length === 0) {
-          setUbicaciones([...ubicacionesData]);
-          yaInicializado = true;
-        } 
+        //if (!yaInicializado && ubicacionesSeleccionadas.length === 0) {
+          setUbicaciones(ubicacionesData);
+        //  yaInicializado = true;
+       // } 
 
         setDatosIniciales({
           categoria: cierre.categoria,
