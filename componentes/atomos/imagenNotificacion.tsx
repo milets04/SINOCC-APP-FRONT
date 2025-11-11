@@ -11,9 +11,9 @@ interface ImagenNotificacionProps {
 }
 
 const colorMap: Record<NotificationColor, string> = {
-  red: '#FF0000',
-  yellow: '#FFD700',
-  green: '#00FF00',
+  red: '#ED1E1E',
+  yellow: '#C9BD0B',
+  green: '#0EAA00',
 };
 
 const ImagenNotificacion: React.FC<ImagenNotificacionProps> = ({
