@@ -8,12 +8,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from 'react-native';
+import { useZonas } from '@/contexto/zonas';
 
 export default function PantallaConfi() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const { zonas, toggleZona } = useZonas();
 
-  const [zones, setZones] = useState([
+  /*const [zones, setZones] = useState([
     { id: '1', name: 'Sacaba', enabled: false },
     { id: '2', name: 'Quillacollo', enabled: false },
     { id: '3', name: 'Zona centro', enabled: false },
@@ -26,7 +28,7 @@ export default function PantallaConfi() {
       )
     );
     console.log(`Zona ${zoneId} cambió a: ${newValue}`);
-  };
+  };*/
 
   const router = useRouter();
 
@@ -79,8 +81,8 @@ export default function PantallaConfi() {
 
         <View style={styles.zonesSection}>
           <ZoneNotifications
-            zones={zones}
-            onZoneToggle={handleZoneToggle}
+            zones={zonas}
+            onZoneToggle={(id, enabled) => toggleZona(id, enabled)}
           />
         </View>
 

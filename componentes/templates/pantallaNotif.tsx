@@ -6,12 +6,14 @@ import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, View, ActivityIndicator, Alert,RefreshControl, Text } from 'react-native';
 import Constants from "expo-constants";
 import React, { useEffect, useState, useCallback } from 'react';
+import { useZonas } from '@/contexto/zonas';
 
 type Cierre = {
   id:number;
   categoria: string | null;
   lugarCierre: string;
   descripcion: string | null;
+  idZona?: number;
   fechaInicio?: string | null;
   fechaFin?: string | null;
   horaInicio?: string | null;
@@ -64,6 +66,8 @@ export default function PantallaNotificaciones() {
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
 
+  const { zonas } = useZonas();
+
   const obtenerCierres = useCallback(async () => {
     setCargando(true);
     try {
@@ -93,6 +97,16 @@ export default function PantallaNotificaciones() {
     setRefrescando(true);
     obtenerCierres();
   }, [obtenerCierres]);
+
+  const zonasActivas = zonas.filter(z => z.enabled).map(z => z.id);
+  const zonasActivasSet = new Set(zonasActivas);
+
+  const cierresFiltrados =
+    zonasActivas.length === 0
+      ? [] // si no hay no muestra nada
+      : cierres.filter(c =>
+          zonasActivasSet.has(String(c.idZona))
+        );
 
   const navegarAHome = () => {
       router.push("/");
@@ -129,13 +143,13 @@ export default function PantallaNotificaciones() {
           <RefreshControl refreshing={refrescando} onRefresh={onRefresh} />
         }
       >
-        {cierres.length === 0 ? (
+        {cierresFiltrados.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="notifications-off-outline" size={48} color="gray" />
             <Text style={styles.emptyText}>No hay notificaciones activas</Text>
           </View>
         ) : (
-          cierres.map((cierre) => (
+          cierresFiltrados.map((cierre) => (
             <NotificationCard
               key={cierre.id}
               color={getCategoriaColor(cierre.categoria)}
