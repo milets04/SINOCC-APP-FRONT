@@ -5,8 +5,13 @@ import { Dimensions, SafeAreaView, StyleSheet, View } from 'react-native';
 import Mapa from '@/componentes/moleculas/mapa';
 import MenuInf from '@/componentes/moleculas/menuInf';
 
+type Ubicacion = { id: number; latitud: string; longitud: string; lugarCierre: string };
 
-const TemplateMapa: React.FC = () => {
+interface TemplateMapaProps {
+  ubicaciones: Ubicacion[];
+}
+
+const TemplateMapa: React.FC<TemplateMapaProps> = ({ ubicaciones }) => {
   const router = useRouter(); 
 
   const screenHeight = Dimensions.get('window').height;
@@ -27,13 +32,13 @@ const TemplateMapa: React.FC = () => {
         {/* Mapa */}
         <View style={styles.mapaContainer}>
           <Mapa
-            ubicaciones={[]} 
+            ubicaciones={ubicaciones} 
             width={Dimensions.get('window').width}
             height={mapaHeight}
           />
         </View>
 
-        {/* Menú Inferior (ahora con la lógica correcta) */}
+        {/* Menú Inferior */}
         <MenuInf
           homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
           mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />} 
@@ -46,20 +51,9 @@ const TemplateMapa: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  mapaContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  mapaContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });
-
 
 export default TemplateMapa;

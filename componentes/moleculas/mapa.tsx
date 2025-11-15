@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import axios from "axios";
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import MarcadorMapa from '../atomos/marcadorMapa';
 
 export interface UbicacionCierre {
@@ -20,13 +21,15 @@ interface MapaProps {
   initialRegion?: Region;
 }
 
-// Coordenadas de Cochabamba, Bolivia
 const COCHABAMBA_REGION: Region = {
   latitude: -17.3935,
   longitude: -66.1570,
-  latitudeDelta: 0.0922,
-  longitudeDelta: 0.0421,
+  latitudeDelta: 0.01,
+  longitudeDelta: 0.01,
 };
+
+// 🔵 API GRATIS DE OPENROUTESERVICE
+const ORS_API_KEY = "TU_API_KEY_ORS_AQUI"; 
 
 const Mapa: React.FC<MapaProps> = ({
   ubicaciones = [],
@@ -36,28 +39,87 @@ const Mapa: React.FC<MapaProps> = ({
   height = 600,
   initialRegion = COCHABAMBA_REGION,
 }) => {
+
   const mapRef = useRef<MapView>(null);
   const [region, setRegion] = useState<Region>(initialRegion);
+
+  const [coordenadasLinea, setCoordenadasLinea] = useState<
+    { latitude: number; longitude: number }[]
+  >([]);
 
   const handleMapPress = (event: any) => {
     try {
       const coordinate = event?.nativeEvent?.coordinate;
-      if (!coordinate || coordinate.latitude === undefined || coordinate.longitude === undefined) {
-        console.warn("⚠️ Evento de mapa sin coordenadas válidas:", event.nativeEvent);
-        return;
-      }
+      if (!coordinate) return;
       onMapPress?.(coordinate);
     } catch (error) {
-      console.error("Error al manejar evento de mapa:", error);
+      console.error("Error en onMapPress:", error);
     }
   };
-
 
   const handleMarcadorPress = (ubicacion: UbicacionCierre) => {
-    if (onMarcadorPress) {
-      onMarcadorPress(ubicacion);
-    }
+    onMarcadorPress?.(ubicacion);
   };
+
+  // ----------------------------------------------------------------
+  // 🔵 SNAP A LA CALLE USANDO ORS (API GRATUITA)
+  // ----------------------------------------------------------------
+  const snapToRoad = async (lat: number, lon: number) => {
+    try {
+      const url = `https://api.openrouteservice.org/v2/nearest/driving-car?api_key=${ORS_API_KEY}&point=${lon},${lat}`;
+
+      const res = await axios.get(url);
+
+      if (
+        res.data &&
+        res.data.features &&
+        res.data.features.length > 0 &&
+        res.data.features[0].geometry.coordinates
+      ) {
+        const [snapLon, snapLat] = res.data.features[0].geometry.coordinates;
+
+        return {
+          latitude: snapLat,
+          longitude: snapLon,
+        };
+      }
+    } catch (error) {
+      console.log("❌ Error ORS:", error);
+    }
+
+    // fallback → punto original
+    return { latitude: lat, longitude: lon };
+  };
+
+  // Orden natural – en el orden en que los colocaste
+  const ordenarNatural = (puntos: UbicacionCierre[]) => {
+    return [...puntos].sort((a, b) => Number(a.id) - Number(b.id));
+  };
+
+  // ----------------------------------------------------------------
+  // 🔵 PROCESAR TODOS LOS MARCADORES Y AJUSTARLOS A LA CALLE
+  // ----------------------------------------------------------------
+  useEffect(() => {
+    const procesarSnap = async () => {
+      if (ubicaciones.length < 2) {
+        setCoordenadasLinea([]);
+        return;
+      }
+
+      const orden = ordenarNatural(ubicaciones);
+
+      const snappedPoints = [];
+
+      for (const punto of orden) {
+        const snap = await snapToRoad(punto.latitud, punto.longitud);
+        snappedPoints.push(snap);
+      }
+
+      setCoordenadasLinea(snappedPoints);
+    };
+
+    procesarSnap();
+  }, [ubicaciones]);
 
   const containerStyle = {
     ...styles.container,
@@ -76,16 +138,20 @@ const Mapa: React.FC<MapaProps> = ({
         onRegionChangeComplete={setRegion}
         onPress={handleMapPress}
         showsUserLocation={true}
-        showsMyLocationButton={true}
         showsCompass={true}
-        showsScale={true}
-        toolbarEnabled={true}
-        zoomEnabled={true}
-        scrollEnabled={true}
-        pitchEnabled={true}
-        rotateEnabled={true}
       >
-        {/* Marcadores de cierres */}
+        {/* 🔵 Línea ajustada a la calle */}
+        {coordenadasLinea.length >= 2 && (
+          <Polyline
+            coordinates={coordenadasLinea}
+            strokeColor="#1E90FF"
+            strokeWidth={6}
+            lineCap="round"
+            lineJoin="round"
+          />
+        )}
+
+        {/* 🔵 Marcadores */}
         {ubicaciones.map((ubicacion) => (
           <Marker
             key={ubicacion.id}
@@ -93,8 +159,6 @@ const Mapa: React.FC<MapaProps> = ({
               latitude: ubicacion.latitud,
               longitude: ubicacion.longitud,
             }}
-            title={ubicacion.titulo}
-            description={ubicacion.descripcion}
             onPress={(e) => {
               e.stopPropagation?.();
               handleMarcadorPress(ubicacion);
