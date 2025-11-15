@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import conexion from "./conexion";
+import conexion from "../contexto/conexion";
 
 type Administrador = {
   id: string;

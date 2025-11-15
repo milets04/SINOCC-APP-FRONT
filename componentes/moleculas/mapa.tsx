@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, View, ViewStyle } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import MarcadorMapa from '../atomos/marcadorMapa';
 
@@ -18,6 +18,7 @@ interface MapaProps {
   width?: number;
   height?: number;
   initialRegion?: Region;
+  zoomCoords?: { latitude: number; longitude: number }[];
 }
 
 const COCHABAMBA_REGION: Region = {
@@ -34,103 +35,115 @@ const Mapa: React.FC<MapaProps> = ({
   width = Dimensions.get('window').width - 40,
   height = 600,
   initialRegion = COCHABAMBA_REGION,
+  zoomCoords,
 }) => {
   const mapRef = useRef<MapView>(null);
-  const [region, setRegion] = useState<Region>(initialRegion);
+  const [mapReady, setMapReady] = useState(false);
 
   const handleMapPress = (event: any) => {
-    try {
-      const coordinate = event?.nativeEvent?.coordinate;
-      if (!coordinate || coordinate.latitude === undefined || coordinate.longitude === undefined) {
-        console.warn("⚠️ Evento de mapa sin coordenadas válidas:", event.nativeEvent);
-        return;
-      }
-      onMapPress?.(coordinate);
-    } catch (error) {
-      console.error("Error al manejar evento de mapa:", error);
-    }
+    const coordinate = event?.nativeEvent?.coordinate;
+    if (!coordinate) return;
+    onMapPress?.(coordinate);
   };
 
   const handleMarcadorPress = (ubicacion: UbicacionCierre) => {
-    if (onMarcadorPress) {
-      onMarcadorPress(ubicacion);
-    }
+    onMarcadorPress?.(ubicacion);
   };
 
-  // --- 🔵 NUEVO: Calcula puntos para la línea de cierre ---
+  // Línea entre puntos según ID
   const [coordenadasLinea, setCoordenadasLinea] = useState<{ latitude: number; longitude: number }[]>([]);
-
   useEffect(() => {
     if (ubicaciones.length >= 2) {
-      // Ordenar por ID para mantener un orden coherente
       const ordenadas = [...ubicaciones].sort((a, b) => Number(a.id) - Number(b.id));
-      const coords = ordenadas.map((u) => ({
-        latitude: u.latitud,
-        longitude: u.longitud,
-      }));
-      setCoordenadasLinea(coords);
+      setCoordenadasLinea(
+        ordenadas.map(u => ({
+          latitude: u.latitud,
+          longitude: u.longitud,
+        }))
+      );
     } else {
       setCoordenadasLinea([]);
     }
   }, [ubicaciones]);
 
-  const containerStyle = {
-    ...styles.container,
-    width: width,
-    height: height,
+  // Auto-zoom y centrado mejorado
+  useEffect(() => {
+    if (!mapRef.current || !mapReady || !zoomCoords || zoomCoords.length === 0) return;
+
+  
+    const timer = setTimeout(() => {
+      if (zoomCoords.length === 1) {
+        mapRef.current?.animateToRegion(
+          {
+            latitude: zoomCoords[0].latitude,
+            longitude: zoomCoords[0].longitude,
+            latitudeDelta: 0.01, 
+            longitudeDelta: 0.01,
+          },
+          1000
+        );
+        return;
+      }
+
+    
+      mapRef.current?.fitToCoordinates(zoomCoords, {
+        edgePadding: { top: 120, left: 80, right: 80, bottom: 120 },
+        animated: true,
+      });
+    }, 500); //Delay de 500ms
+
+    return () => clearTimeout(timer);
+  }, [zoomCoords, mapReady]);
+
+  // Contenedor dinámico con TypeScript
+  const containerStyle: ViewStyle = {
+    width,
+    height,
   };
 
   return (
-    <View style={containerStyle}>
+    <View style={[styles.container, containerStyle]}>
       <MapView
         ref={mapRef}
         style={styles.map}
         provider={PROVIDER_DEFAULT}
         initialRegion={initialRegion}
-        region={region}
-        onRegionChangeComplete={setRegion}
         onPress={handleMapPress}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-        showsCompass={true}
-        showsScale={true}
-        toolbarEnabled={true}
-        zoomEnabled={true}
-        scrollEnabled={true}
-        pitchEnabled={true}
-        rotateEnabled={true}
+        onMapReady={() => setMapReady(true)} // Detectar cuando el mapa está listo
+        showsUserLocation
+        showsMyLocationButton
+        showsCompass
+        showsScale
+        toolbarEnabled
+        zoomEnabled
+        scrollEnabled
+        pitchEnabled
+        rotateEnabled
       >
-        {/* 🔵 Línea de cierre entre marcadores */}
+        {/* Línea del cierre */}
         {coordenadasLinea.length >= 2 && (
           <Polyline
             coordinates={coordenadasLinea}
-            strokeColor="#1E90FF" // Azul visible
-            strokeWidth={6} // grosor visual de la calle
+            strokeColor="#1E90FF"
+            strokeWidth={6}
             lineCap="round"
             lineJoin="round"
           />
         )}
 
-        {/* 🔵 Marcadores */}
-        {ubicaciones.map((ubicacion) => (
+        {/* Marcadores */}
+        {ubicaciones.map(u => (
           <Marker
-            key={ubicacion.id}
-            coordinate={{
-              latitude: ubicacion.latitud,
-              longitude: ubicacion.longitud,
-            }}
-            title={ubicacion.titulo}
-            description={ubicacion.descripcion}
+            key={u.id}
+            coordinate={{ latitude: u.latitud, longitude: u.longitud }}
+            title={u.titulo}
+            description={u.descripcion}
             onPress={(e) => {
               e.stopPropagation?.();
-              handleMarcadorPress(ubicacion);
+              handleMarcadorPress(u);
             }}
           >
-            <MarcadorMapa
-              size={40}
-              color="#068EF7"
-              onPress={() => handleMarcadorPress(ubicacion)}
-            />
+            <MarcadorMapa size={40} color="#068EF7" onPress={() => handleMarcadorPress(u)} />
           </Marker>
         ))}
       </MapView>

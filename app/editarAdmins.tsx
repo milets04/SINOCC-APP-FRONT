@@ -4,7 +4,7 @@ import TituloPestania from '@/componentes/atomos/tituloPestania';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
-import conexion from './conexion';
+import conexion from '../contexto/conexion';
 
 const SINOCC_PM = require('../assets/images/SINOCC_PM.png');
 

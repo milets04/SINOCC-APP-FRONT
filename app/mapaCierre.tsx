@@ -58,6 +58,10 @@ const MapaCierre: React.FC = () => {
   const menuHeight = 60;
   const mapaHeight = screenHeight - menuHeight - 50;
 
+  const [zoomCoords, setZoomCoords] = useState<
+    { latitude: number; longitude: number }[]
+  >([]);
+
   // Función para obtener los datos del cierre específico
   const obtenerCierre = async () => {
     if (!cierreId) {
@@ -75,7 +79,6 @@ const MapaCierre: React.FC = () => {
       if (data.exito) {
         setCierre(data.datos);
         
-        // Convertir las ubicaciones al formato que espera el mapa
         const ubicacionesConvertidas: UbicacionCierre[] = data.datos.ubicaciones.map((ubicacion: any) => ({
           id: ubicacion.id,
           latitud: parseFloat(ubicacion.latitud),
@@ -83,8 +86,16 @@ const MapaCierre: React.FC = () => {
           titulo: data.datos.lugarCierre,
           descripcion: data.datos.descripcion || "Sin descripción"
         }));
-
+        
         setUbicacionesMapa(ubicacionesConvertidas);
+
+        setTimeout(() => {
+          const coordenadasZoom = ubicacionesConvertidas.map(u => ({
+            latitude: u.latitud,
+            longitude: u.longitud,
+          }));
+          setZoomCoords(coordenadasZoom);
+        }, 300);
       } else {
         throw new Error(data.mensaje || "Error al obtener el cierre");
       }
@@ -173,6 +184,7 @@ const MapaCierre: React.FC = () => {
             onMarcadorPress={handleMarcadorPress}
             width={Dimensions.get('window').width}
             height={mapaHeight}
+            zoomCoords={zoomCoords}
           />
         </View>
 
