@@ -4,31 +4,16 @@ import Header from '@/componentes/moleculas/header';
 import SettingsItem from '@/componentes/moleculas/menuConf';
 import MenuInf from '@/componentes/moleculas/menuInf';
 import ZoneNotifications from '@/componentes/moleculas/menuZonas';
+import { useZonas } from '@/contexto/zonas';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from 'react-native';
-import { useZonas } from '@/contexto/zonas';
 
 export default function PantallaConfi() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const { zonas, toggleZona } = useZonas();
-
-  /*const [zones, setZones] = useState([
-    { id: '1', name: 'Sacaba', enabled: false },
-    { id: '2', name: 'Quillacollo', enabled: false },
-    { id: '3', name: 'Zona centro', enabled: false },
-  ]);
-
-  const handleZoneToggle = (zoneId: string, newValue: boolean) => {
-    setZones(prevZones =>
-      prevZones.map(zone =>
-        zone.id === zoneId ? { ...zone, enabled: newValue } : zone
-      )
-    );
-    console.log(`Zona ${zoneId} cambió a: ${newValue}`);
-  };*/
 
   const router = useRouter();
 
@@ -67,16 +52,6 @@ export default function PantallaConfi() {
           description="Recibe notificaciones sobre nuevos cierres"
           switchValue={notificationsEnabled}
           onSwitchChange={setNotificationsEnabled}
-        />
-        
-        <SettingsItem
-          icon="location"
-          iconLibrary="evil"
-          iconColor="#146BF6"
-          title="Alertas por ubicación"
-          description="Alertas de cierres cerca de ti"
-          switchValue={locationEnabled}
-          onSwitchChange={setLocationEnabled}
         />
 
         <View style={styles.zonesSection}>
