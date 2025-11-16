@@ -1,6 +1,5 @@
-import Subtitulo from '@/componentes/atomos/subtitulo';
-import Switch from '@/componentes/atomos/switch';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import React from 'react';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 
 interface Zone {
   id: string;
@@ -9,73 +8,78 @@ interface Zone {
 }
 
 interface ZoneNotificationsProps {
-  title?: string;
   zones: Zone[];
-  onZoneToggle: (zoneId: string, newValue: boolean) => void;
-  containerStyle?: ViewStyle;
+  onZoneToggle: (id: string, enabled: boolean) => void;
+  disabled?: boolean;
 }
 
-const ZoneNotifications: React.FC<ZoneNotificationsProps> = ({
-  title = "Notificaciones por áreas",
-  zones,
+export default function ZoneNotifications({ 
+  zones, 
   onZoneToggle,
-  containerStyle,
-}) => {
+  disabled = false 
+}: ZoneNotificationsProps) {
   return (
-    <View style={[styles.container, containerStyle]}>
-      <Text style={styles.mainTitle}>{title}</Text>
-      
-      <View style={styles.zonesContainer}>
-        {zones.map((zone) => (
-          <View key={zone.id} style={styles.zoneItem}>
-            <Subtitulo style={styles.zoneName}>{zone.name}</Subtitulo>
-            
-            <Switch
-              value={zone.enabled}
-              onValueChange={(newValue) => onZoneToggle(zone.id, newValue)}
-              trackColorActive="#068EF7"
-              trackColorInactive="#000000"
-              thumbColor="#FFFFFF"
-              width={60}
-              height={34}
-              circleSize={26}
-            />
-          </View>
-        ))}
-      </View>
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>Notificaciones por Área</Text>
+      {zones.map((zone) => (
+        <View key={zone.id} style={[
+          styles.zoneItem,
+          disabled && styles.zoneItemDisabled
+        ]}>
+          <Text style={[
+            styles.zoneName,
+            disabled && styles.zoneNameDisabled
+          ]}>
+            {zone.name}
+          </Text>
+          <Switch
+            value={zone.enabled}
+            onValueChange={(value) => onZoneToggle(zone.id, value)}
+            disabled={disabled}
+            trackColor={{ 
+              false: disabled ? '#D1D5DB' : '#E5E7EB', 
+              true: disabled ? '#93C5FD' : '#146BF6' 
+            }}
+            thumbColor={disabled ? '#9CA3AF' : '#FFFFFF'}
+            style={disabled && styles.switchDisabled}
+          />
+        </View>
+      ))}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 20,
-    paddingHorizontal: 25,
-    borderRadius: 18,
-    width: '87%',
+    borderRadius: 12,
+    padding: 16,
   },
-  mainTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
-    fontFamily: 'Almarai',
-    marginBottom: 20,
-  },
-  zonesContainer: {
-    gap: 16,
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 16,
   },
   zoneItem: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  zoneItemDisabled: {
+    opacity: 0.5,
   },
   zoneName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+    fontSize: 15,
+    color: '#050505ff',
+  },
+  zoneNameDisabled: {
+    color: '#9CA3AF',
+  },
+  switchDisabled: {
+    opacity: 0.5,
   },
 });
-
-export default ZoneNotifications;

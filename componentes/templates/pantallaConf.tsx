@@ -11,9 +11,8 @@ import { useState } from "react";
 import { StyleSheet, View } from 'react-native';
 
 export default function PantallaConfi() {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
-  const { zonas, toggleZona } = useZonas();
+  const { zonas, notificationsEnabled, toggleZona, setNotificationsEnabled } = useZonas();
 
   const router = useRouter();
 
@@ -58,6 +57,7 @@ export default function PantallaConfi() {
           <ZoneNotifications
             zones={zonas}
             onZoneToggle={(id, enabled) => toggleZona(id, enabled)}
+            disabled={!notificationsEnabled}
           />
         </View>
 
