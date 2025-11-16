@@ -37,8 +37,8 @@ export default function ZoneNotifications({
             onValueChange={(value) => onZoneToggle(zone.id, value)}
             disabled={disabled}
             trackColor={{ 
-              false: disabled ? '#D1D5DB' : '#E5E7EB', 
-              true: disabled ? '#93C5FD' : '#146BF6' 
+              false: disabled ? '#D1D5DB' : '#000000', 
+              true: disabled ? '#93C5FD' : '#068EF7' 
             }}
             thumbColor={disabled ? '#9CA3AF' : '#FFFFFF'}
             style={disabled && styles.switchDisabled}
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   zoneName: {
     fontSize: 15,
-    color: '#050505ff',
+    color: '#000000ff',
   },
   zoneNameDisabled: {
     color: '#9CA3AF',
