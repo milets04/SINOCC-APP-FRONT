@@ -1,17 +1,20 @@
 import { AuthProvider } from '@/contexto/autenticacion';
+import { CierresProvider } from '@/contexto/cierres';
 import { UbicacionesProvider } from '@/contexto/ubicaciones';
+import { ZonasProvider } from '@/contexto/zonas';
 import { Slot } from "expo-router";
 import { View } from "react-native";
-import { ZonasProvider } from '@/contexto/zonas';
 
 export default function layout() {
   return (
     <AuthProvider>
       <ZonasProvider>
         <UbicacionesProvider>
-          <View style={{ flex: 1 }}>
-            <Slot />
-          </View>
+          <CierresProvider>
+            <View style={{ flex: 1 }}>
+              <Slot />
+            </View>
+          </CierresProvider>
         </UbicacionesProvider>
       </ZonasProvider>
     </AuthProvider>
