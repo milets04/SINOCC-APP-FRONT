@@ -185,6 +185,7 @@ const MapaCierre: React.FC = () => {
             width={Dimensions.get('window').width}
             height={mapaHeight}
             zoomCoords={zoomCoords}
+            mostrarLinea={true}
           />
         </View>
 
