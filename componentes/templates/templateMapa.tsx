@@ -7,34 +7,33 @@ import MenuInf from '@/componentes/moleculas/menuInf';
 import { useCierres } from '@/contexto/cierres';
 
 const TemplateMapa: React.FC = () => {
-  const router = useRouter(); 
+  const router = useRouter();
   const { cierres, cargandoCierres, errorCierres, recargarCierres } = useCierres();
 
   const screenHeight = Dimensions.get('window').height;
-  const menuHeight = 60; 
-  const mapaHeight = screenHeight - menuHeight - 50; 
+  const menuHeight = 60;
+  const mapaHeight = screenHeight - menuHeight - 50;
 
   const navegarAlHome = () => {
-    router.push('/'); 
+    router.push('/');
   };
 
   const noHacerNada = () => {
     console.log("Ya estás en la pantalla del mapa.");
   };
 
-  // Convertir los cierres al formato esperado por el componente Mapa
+  // Convertir datos al formato esperado por <Mapa />
   const ubicacionesParaMapa = cierres.map(cierre => ({
     id: cierre.id,
-    latitud: cierre.ubicacion.latitud,
-    longitud: cierre.ubicacion.longitud,
+    latitud: parseFloat(String(cierre.ubicacion.latitud)),
+    longitud: parseFloat(String(cierre.ubicacion.longitud)),
     titulo: cierre.lugarCierre,
-    descripcion: cierre.descripcion,
+    descripcion: cierre.descripcion || "Sin descripción"
   }));
 
   // Log para debug
   console.log('🗺️ TemplateMapa - Total de cierres:', cierres.length);
   console.log('🗺️ TemplateMapa - Total de ubicaciones para mapa:', ubicacionesParaMapa.length);
-  
   if (ubicacionesParaMapa.length > 0) {
     console.log('📍 Primera ubicación:', ubicacionesParaMapa[0]);
   }
@@ -60,7 +59,7 @@ const TemplateMapa: React.FC = () => {
           ) : (
             <>
               <Mapa
-                ubicaciones={ubicacionesParaMapa} 
+                ubicaciones={ubicacionesParaMapa}
                 width={Dimensions.get('window').width}
                 height={mapaHeight}
               />
@@ -78,7 +77,7 @@ const TemplateMapa: React.FC = () => {
         {/* Menú Inferior */}
         <MenuInf
           homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
-          mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />} 
+          mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />}
           onHomePress={navegarAlHome}
           onMapPress={noHacerNada}
         />
@@ -123,7 +122,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#EF4444',
     textAlign: 'center',
-    marginTop: 12,
   },
   retryText: {
     fontSize: 14,
