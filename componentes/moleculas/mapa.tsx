@@ -10,7 +10,6 @@ export interface UbicacionCierre {
   titulo?: string;
   descripcion?: string;
 }
-
 interface MapaProps {
   ubicaciones?: UbicacionCierre[];
   onMarcadorPress?: (ubicacion: UbicacionCierre) => void;
@@ -19,6 +18,7 @@ interface MapaProps {
   height?: number;
   initialRegion?: Region;
   zoomCoords?: { latitude: number; longitude: number }[];
+  mostrarLinea?: boolean; 
 }
 
 const COCHABAMBA_REGION: Region = {
@@ -36,6 +36,7 @@ const Mapa: React.FC<MapaProps> = ({
   height = 600,
   initialRegion = COCHABAMBA_REGION,
   zoomCoords,
+  mostrarLinea = false,
 }) => {
   const mapRef = useRef<MapView>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -53,7 +54,7 @@ const Mapa: React.FC<MapaProps> = ({
   // Línea entre puntos según ID
   const [coordenadasLinea, setCoordenadasLinea] = useState<{ latitude: number; longitude: number }[]>([]);
   useEffect(() => {
-    if (ubicaciones.length >= 2) {
+    if (mostrarLinea && ubicaciones.length >= 2) {
       const ordenadas = [...ubicaciones].sort((a, b) => Number(a.id) - Number(b.id));
       setCoordenadasLinea(
         ordenadas.map(u => ({
@@ -62,9 +63,9 @@ const Mapa: React.FC<MapaProps> = ({
         }))
       );
     } else {
-      setCoordenadasLinea([]);
+      setCoordenadasLinea([]); 
     }
-  }, [ubicaciones]);
+  }, [ubicaciones, mostrarLinea]);
 
   // Auto-zoom y centrado mejorado
   useEffect(() => {
