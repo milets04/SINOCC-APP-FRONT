@@ -14,34 +14,25 @@ const TemplateMapa: React.FC = () => {
   const menuHeight = 60;
   const mapaHeight = screenHeight - menuHeight - 50;
 
-  const navegarAlHome = () => {
-    router.push('/');
-  };
-
-  const noHacerNada = () => {
-    console.log("Ya estás en la pantalla del mapa.");
-  };
-
-  // Convertir datos al formato esperado por <Mapa />
+  // Convertir cierres en ubicaciones
   const ubicacionesParaMapa = cierres.map(cierre => ({
     id: cierre.id,
-    latitud: parseFloat(String(cierre.ubicacion.latitud)),
-    longitud: parseFloat(String(cierre.ubicacion.longitud)),
+    latitud: Number(cierre.ubicacion.latitud),
+    longitud: Number(cierre.ubicacion.longitud),
     titulo: cierre.lugarCierre,
     descripcion: cierre.descripcion || "Sin descripción"
   }));
 
-  // Log para debug
-  console.log('🗺️ TemplateMapa - Total de cierres:', cierres.length);
-  console.log('🗺️ TemplateMapa - Total de ubicaciones para mapa:', ubicacionesParaMapa.length);
-  if (ubicacionesParaMapa.length > 0) {
-    console.log('📍 Primera ubicación:', ubicacionesParaMapa[0]);
-  }
+  // Coordenadas para zoom
+  const zoomCoords = ubicacionesParaMapa.map(u => ({
+    latitude: u.latitud,
+    longitude: u.longitud,
+  }));
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Mapa */}
+
         <View style={styles.mapaContainer}>
           {cargandoCierres ? (
             <View style={styles.loadingContainer}>
@@ -60,9 +51,11 @@ const TemplateMapa: React.FC = () => {
             <>
               <Mapa
                 ubicaciones={ubicacionesParaMapa}
+                zoomCoords={zoomCoords}
                 width={Dimensions.get('window').width}
                 height={mapaHeight}
               />
+
               {ubicacionesParaMapa.length === 0 && (
                 <View style={styles.noDataContainer}>
                   <Text style={styles.noDataText}>
@@ -78,8 +71,8 @@ const TemplateMapa: React.FC = () => {
         <MenuInf
           homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
           mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />}
-          onHomePress={navegarAlHome}
-          onMapPress={noHacerNada}
+          onHomePress={() => router.push('/')}
+          onMapPress={() => console.log("Ya estás en mapa")}
         />
       </View>
     </SafeAreaView>
@@ -104,19 +97,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 12,
   },
   loadingText: {
     fontSize: 16,
     color: '#6B7280',
-    marginTop: 8,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
-    gap: 8,
   },
   errorText: {
     fontSize: 16,
@@ -132,10 +121,8 @@ const styles = StyleSheet.create({
   noDataContainer: {
     position: 'absolute',
     bottom: 100,
-    alignSelf: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    padding: 10,
+    backgroundColor: '#00000099',
     borderRadius: 8,
   },
   noDataText: {

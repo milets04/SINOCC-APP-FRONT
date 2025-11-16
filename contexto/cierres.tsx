@@ -1,7 +1,6 @@
 import Constants from 'expo-constants';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
-// Usa la misma lógica que conexion.ts
 const obtenerApiUrl = () => { 
   try {
     const host =
@@ -12,10 +11,7 @@ const obtenerApiUrl = () => {
       const ip = host.split(':')[0];
       return `http://${ip}:3000/api`;
     }
-  } catch (error) {
-    console.warn('No se pudo detectar la IP local automáticamente.');
-  }
-
+  } catch {}
   return 'http://localhost:3000/api';
 };
 
@@ -51,147 +47,78 @@ interface CierresContextType {
   recargarCierres: () => Promise<void>;
 }
 
-const CierresContext = createContext<CierresContextType | undefined>(undefined); 
+const CierresContext = createContext<CierresContextType | undefined>(undefined);
 
 export const CierresProvider = ({ children }: { children: ReactNode }) => {
   const [cierres, setCierres] = useState<CierreConPrimerUbicacion[]>([]);
   const [cargandoCierres, setCargandoCierres] = useState(false);
   const [errorCierres, setErrorCierres] = useState<string | null>(null);
 
-  // Función para obtener cierres activos
   const obtenerCierresActivos = async (): Promise<Cierre[]> => {
-    console.log('🔍 Intentando conectar a:', `${API_URL}/cierres/activos`);
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    try {
-      const response = await fetch(`${API_URL}/cierres/activos`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      console.log('📡 Status de respuesta:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Error del servidor:', errorText);
-        throw new Error(`Error ${response.status}: ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Respuesta completa del servidor:', JSON.stringify(data, null, 2));
-      
-      // El backend puede devolver { exito: true, datos: [...] } o directamente [...]
-      let cierres: Cierre[];
-      
-      if (data.datos && Array.isArray(data.datos)) {
-        cierres = data.datos;
-      } else if (Array.isArray(data)) {
-        cierres = data;
-      } else {
-        console.error('❌ Formato inesperado de respuesta:', data);
-        throw new Error('Formato de respuesta inválido');
-      }
-      
-      console.log('✅ Cierres obtenidos:', cierres.length);
-      return cierres;
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
-        throw new Error('Tiempo de espera agotado. Verifica tu conexión.');
-      }
-      
-      console.error('❌ Error en fetch:', error);
-      throw error;
-      
-    }
+    const response = await fetch(`${API_URL}/cierres`);
+    if (!response.ok) throw new Error("Error al obtener cierres");
+    const data = await response.json();
+    return data.datos ?? data;
   };
 
-  // Función para obtener solo el primer marcador de cada cierre
-  const obtenerPrimerosMarcadores = (cierresData: Cierre[]): CierreConPrimerUbicacion[] => {
-    if (!Array.isArray(cierresData)) {
-      console.error('❌ obtenerPrimerosMarcadores recibió datos no válidos:', cierresData);
-      return [];
-    }
-    
-    return cierresData
-      .filter(cierre => cierre.ubicaciones && Array.isArray(cierre.ubicaciones) && cierre.ubicaciones.length > 0)
-      .map(cierre => ({
-        id: cierre.id,
-        categoria: cierre.categoria,
-        lugarCierre: cierre.lugarCierre,
-        idZona: cierre.idZona,
-        fechaInicio: cierre.fechaInicio,
-        fechaFin: cierre.fechaFin,
-        horaInicio: cierre.horaInicio,
-        horaFin: cierre.horaFin,
-        descripcion: cierre.descripcion,
-        estado: cierre.estado,
-        ubicacion: cierre.ubicaciones[0],
+  const obtenerPrimerosMarcadores = (data: Cierre[]): CierreConPrimerUbicacion[] =>
+    data
+      .filter(c => c.ubicaciones?.length > 0)
+      .map(c => ({
+        id: c.id,
+        categoria: c.categoria,
+        lugarCierre: c.lugarCierre,
+        idZona: c.idZona,
+        fechaInicio: c.fechaInicio,
+        fechaFin: c.fechaFin,
+        horaInicio: c.horaInicio,
+        horaFin: c.horaFin,
+        descripcion: c.descripcion,
+        estado: c.estado,
+        ubicacion: c.ubicaciones[0],
       }));
-  };
 
-  // Función para cargar cierres
   const recargarCierres = async () => {
     try {
       setCargandoCierres(true);
       setErrorCierres(null);
-      
-      console.log('🔄 Recargando cierres...');
-      
-      const cierresActivos = await obtenerCierresActivos();
-      const primerosMarcadores = obtenerPrimerosMarcadores(cierresActivos);
+      const data = await obtenerCierresActivos(); // 
+
+      // ----- PASO 1: VER DATOS CRUDOS -----
+      // Revisa en la consola de tu terminal (donde corre 'expo start')
+      // qué es lo que realmente llega de la API.
+      console.log('DATOS CRUDOS DE /api/cierres:', JSON.stringify(data, null, 2));
+      // ------------------------------------
+
+      const primerosMarcadores = obtenerPrimerosMarcadores(data); // 
+
+      // ----- PASO 2: VER DATOS FILTRADOS -----
+      // Revisa si esta lista está vacía. Si lo está, confirma el diagnóstico.
+      console.log('DATOS FILTRADOS (primeros marcadores):', JSON.stringify(primerosMarcadores, null, 2));
+      // ------------------------------------
       
       setCierres(primerosMarcadores);
-      console.log('✅ Cierres cargados exitosamente:', primerosMarcadores.length);
-    } catch (err: any) {
-      console.error('❌ Error al cargar cierres:', err);
-      
-      let mensajeError = 'No se pudieron cargar los cierres';
-      
-      if (err.message?.includes('Network request failed')) {
-        mensajeError = 'Error de conexión. Verifica tu red y que el backend esté corriendo.';
-      } else if (err.message?.includes('Tiempo de espera agotado')) {
-        mensajeError = err.message;
-      } else if (err.message) {
-        mensajeError = err.message;
-      }
-      
-      setErrorCierres(mensajeError);
-      setCierres([]);
+    } catch (e: any) {
+      setErrorCierres(e.message);
+      setCierres([]); 
     } finally {
-      setCargandoCierres(false);
+      setCargandoCierres(false); 
     }
   };
 
-  // Cargar cierres al montar el componente
   useEffect(() => {
     recargarCierres();
   }, []);
 
   return (
-    <CierresContext.Provider value={{ 
-      cierres,
-      cargandoCierres,
-      errorCierres,
-      recargarCierres,
-    }}>
+    <CierresContext.Provider value={{ cierres, cargandoCierres, errorCierres, recargarCierres }}>
       {children}
     </CierresContext.Provider>
   );
 };
 
 export const useCierres = () => {
-  const context = useContext(CierresContext);
-  if (!context) {
-    throw new Error('useCierres debe ser usado dentro de un CierresProvider');
-  }
-  return context;
+  const ctx = useContext(CierresContext);
+  if (!ctx) throw new Error("useCierres debe ser usado dentro de un CierresProvider");
+  return ctx;
 };
