@@ -70,19 +70,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // 🔴 Cerrar sesión
   const logout = async () => {
-    setIsLoading(true);
-    try {
-      await AsyncStorage.removeItem('userToken');
-      await AsyncStorage.removeItem('userRol');
-      setToken(null);
-      setRol(null);
-      console.log("🚪 Sesión cerrada correctamente");
-    } catch (e) {
-      console.error("❌ Error borrando el token de AsyncStorage:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  try {
+    await AsyncStorage.removeItem('userToken');
+    await AsyncStorage.removeItem('userRol');
+    await AsyncStorage.getAllKeys(); 
+    setToken(null);
+    setRol(null);
+    console.log("🚪 Sesión cerrada correctamente");
+  } catch (e) {
+    console.error("❌ Error borrando el token de AsyncStorage:", e);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <AuthContext.Provider value={{ token, rol, login, logout, isLoading, isInitializing }}>

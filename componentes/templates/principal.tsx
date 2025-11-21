@@ -11,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -153,17 +154,21 @@ const Principal = () => {
                 : "exito";
 
             return (
-              <CierreAct
+              <TouchableOpacity
                 key={cierre.id}
-                titulo={cierre.lugarCierre}
-                lugar={cierre.zona?.nombreZona || "Sin zona"}
-                descripcion={cierre.descripcion || "Sin descripción"}
-                horaInicio={horaInicio} 
-                estimado={estimado} 
-                categoriaAlerta={categoriaAlerta}
-                categoriaNivel={categoriaNivel}
-                style={styles.card}
-              />
+                onPress={() => router.push(`/mapaCierre?cierreId=${cierre.id}`)}
+              >
+                <CierreAct
+                  titulo={cierre.lugarCierre}
+                  lugar={cierre.zona?.nombreZona || "Sin zona"}
+                  descripcion={cierre.descripcion || "Sin descripción"}
+                  horaInicio={horaInicio} 
+                  estimado={estimado} 
+                  categoriaAlerta={categoriaAlerta}
+                  categoriaNivel={categoriaNivel}
+                  style={styles.card}
+                />
+              </TouchableOpacity>
             );
           })
         )}
