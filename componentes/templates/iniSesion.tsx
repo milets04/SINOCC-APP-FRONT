@@ -45,8 +45,8 @@ const IniSesion = () => {
     setCargando(true);
 
     try {
-      console.log("🔄 Iniciando sesión...");
-      console.log("📧 Correo:", correo);
+      console.log("Iniciando sesión...");
+      console.log("Correo:", correo);
 
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
@@ -63,7 +63,7 @@ const IniSesion = () => {
 
       const datos = await response.json();
 
-      console.log("📨 Respuesta recibida:", JSON.stringify(datos, null, 2));
+      console.log("Respuesta recibida:", JSON.stringify(datos, null, 2));
 
       if (datos.exito && datos.datos) {
         const { rol, nombre, apellido, token } = datos.datos;
@@ -74,10 +74,10 @@ const IniSesion = () => {
         }
         await login(token, rol.toLowerCase());
 
-        console.log("✅ Login exitoso con rol:", rol);
+        console.log("Login exitoso con rol:", rol);
 
         Alert.alert(
-          "✅ Bienvenido",
+          "Bienvenido",
           `Hola ${nombre || "Usuario"} ${apellido || ""}\nRol: ${rol}`,
           [
             {
@@ -92,17 +92,17 @@ const IniSesion = () => {
         setContrasena("");
 
       } else {
-        console.log("❌ Error:", datos.mensaje);
+        console.log("Error:", datos.mensaje);
         Alert.alert(
-          "❌ Error de Autenticación",
+          "Error de Autenticación",
           datos.mensaje || "Credenciales incorrectas"
         );
       }
 
     } catch (error: any) {
-      console.error("❌ Error de conexión:", error);
+      console.error("Error de conexión:", error);
       Alert.alert(
-        "❌ Error de Conexión",
+        "Error de Conexión",
         `No se pudo conectar con el servidor.\n\nDetalles: ${error.message}`,
         [{ text: "Entendido" }]
       );

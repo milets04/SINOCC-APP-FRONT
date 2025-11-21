@@ -60,10 +60,10 @@ const princSuper = () => {
   const obtenerToken = async (): Promise<string | null> => {
     try {
       const token = await AsyncStorage.getItem("userToken");
-      console.log("🔑 Token obtenido:", token);
+      console.log("Token obtenido:", token);
       return token;
     } catch (err) {
-      console.error("❌ Error al obtener token:", err);
+      console.error("Error al obtener token:", err);
       return null;
     }
   };
@@ -85,7 +85,7 @@ const princSuper = () => {
         throw new Error(data.mensaje || "Error al obtener cierres");
       }
     } catch (err1) {
-      console.warn("⚠️ Error con URL principal:", err1);
+      console.warn("Error con URL principal:", err1);
 
       try {
         const fallback = "http://localhost:3000/api/cierres";
@@ -214,16 +214,16 @@ const princSuper = () => {
               });
 
               const data = await res.json();
-              console.log("🗑️ Respuesta eliminación:", data);
+              console.log("Respuesta eliminación:", data);
 
               if (data.exito) {
                 setCierres((prev) => prev.filter((c) => c.id !== cierre.id));
-                Alert.alert("✅ Éxito", "Cierre eliminado correctamente.");
+                Alert.alert("Éxito", "Cierre eliminado correctamente.");
               } else {
                 Alert.alert("Error", data.mensaje || "No se pudo eliminar el cierre.");
               }
             } catch (err) {
-              console.error("❌ Error al eliminar:", err);
+              console.error("Error al eliminar:", err);
               Alert.alert("Error", "No se pudo conectar con el servidor para eliminar el cierre.");
             }
           },
