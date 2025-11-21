@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, SafeAreaView, StyleSheet, Text, View } from 'react-native'; // Mantengo Dimensions por ahora, aunque su uso se reduce
+import { ActivityIndicator, Alert, Dimensions, SafeAreaView, StyleSheet, Text, View } from 'react-native'; // Asegúrate de importar Dimensions
 
 import Mapa, { UbicacionCierre } from '@/componentes/moleculas/mapa';
 import MenuInf from '@/componentes/moleculas/menuInf';
+
 const API_BASE = 'https://sinocc-backend.onrender.com/api';
+
 interface CierreCompleto {
   id: number;
   categoria: string | null;
@@ -29,7 +31,8 @@ const MapaCierre: React.FC = () => {
   const [cargando, setCargando] = useState(true);
   const [ubicacionesMapa, setUbicacionesMapa] = useState<UbicacionCierre[]>([]);
 
-  const mapaHeight = Dimensions.get('window').height; 
+  // 💡 Obtén el ancho de la pantalla
+  const screenWidth = Dimensions.get('window').width;
 
   const [zoomCoords, setZoomCoords] = useState<
     { latitude: number; longitude: number }[]
@@ -130,6 +133,7 @@ const MapaCierre: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        {/* Información del cierre */}
         <View style={styles.infoContainer}>
           <Text style={styles.titulo}>{cierre.lugarCierre}</Text>
           <Text style={styles.lugar}>{cierre.zona?.nombreZona || "Sin zona"}</Text>
@@ -149,17 +153,20 @@ const MapaCierre: React.FC = () => {
             </Text>
           </View>
         </View>
+
+        {/* Mapa - Ahora le pasamos el ancho de la pantalla, pero no la altura */}
         <View style={styles.mapaContainer}>
           <Mapa
             ubicaciones={ubicacionesMapa}
             onMarcadorPress={handleMarcadorPress}
-            width={Dimensions.get('window').width}
-            height={mapaHeight} 
+            width={screenWidth} // 💡 Pasa el ancho completo de la pantalla
+            // height ya no es necesario aquí, el flex: 1 del mapaContainer y del Mapa interno lo controlan
             zoomCoords={zoomCoords}
             mostrarLinea={true}
           />
         </View>
 
+        {/* Menú Inferior */}
         <MenuInf
           homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
           mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />}
@@ -231,7 +238,7 @@ const styles = StyleSheet.create({
     color: '#34C759',
   },
   mapaContainer: {
-    flex: 1,
+    flex: 1, 
   },
   centered: {
     flex: 1,
