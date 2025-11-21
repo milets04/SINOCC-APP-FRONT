@@ -4,22 +4,52 @@ import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
 import { useAuth } from "@/contexto/autenticacion";
+import Constants from "expo-constants"; // 🔹 Importante para la IP dinámica
 import { useRouter } from "expo-router";
-import React, { memo, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";
+import React, { memo, useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-const API_URL = "https://tu-api.com/api"; // 🔧 Ajusta la URL de tu backend
+// 🔹 1. Lógica de conexión dinámica (Copiada del archivo funcional)
+const obtenerApiUrl = () => {
+  try {
+    const host =
+      Constants?.expoConfig?.hostUri ||
+      Constants?.manifest2?.extra?.expoClient?.hostUri;
 
+    if (host) {
+      const ip = host.split(":")[0];
+      const apiUrl = `http://${ip}:3000/api`;
+      console.log("🌐 API URL detectada automáticamente:", apiUrl);
+      return apiUrl;
+    }
+  } catch (error) {
+    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
+  }
+  return "http://localhost:3000/api";
+};
+
+const API_BASE = obtenerApiUrl();
+
+// 🔹 2. Tipo actualizado para coincidir con el backend
 interface Cierre {
   id: number;
-  categoria: string;
+  categoria: string | null;
   lugarCierre: string;
-  fechaInicio?: string;
-  fechaFin?: string;
-  horaInicio?: string;
-  horaFin?: string;
-  descripcion?: string;
-  zona?: string;
+  idZona: number | null;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+  horaInicio: string | null;
+  horaFin: string | null;
+  descripcion: string | null;
+  zona: { id: number; nombreZona: string } | null;
 }
 
 const PrincAdmin = () => {
@@ -28,51 +58,129 @@ const PrincAdmin = () => {
 
   const [cierres, setCierres] = useState<Cierre[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refrescando, setRefrescando] = useState(false); // Nuevo estado para pull-to-refresh
 
   // Estados para el modal de confirmación
   const [modalVisible, setModalVisible] = useState(false);
   const [cierreAEliminar, setCierreAEliminar] = useState<Cierre | null>(null);
 
-  // 🔹 Obtener cierres desde el backend
-  const obtenerCierres = async () => {
+  // 🔹 3. Lógica de Obtención de Datos (Igual a princSuper)
+  const obtenerCierres = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/cierres`, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      // Intento 1: URL Dinámica
+      let response = await fetch(`${API_BASE}/cierres`, {
+        headers: { Authorization: `Bearer ${token}` }, // Mantenemos el token por seguridad
       });
 
-      if (!response.ok) throw new Error("Error al obtener los cierres");
+      if (!response.ok) throw new Error("Fallo con la URL base");
 
       const data = await response.json();
-      console.log("Cierres obtenidos:", data);
-      setCierres(data);
-    } catch (error) {
-      console.error("Error al obtener cierres:", error);
-      Alert.alert("Error", "No se pudieron cargar los cierres activos.");
+
+      if (data.exito) {
+        setCierres(data.datos);
+      } else {
+        throw new Error(data.mensaje || "Error al obtener cierres");
+      }
+    } catch (err1) {
+      console.warn("⚠️ Error con URL principal, probando fallback...", err1);
+      
+      // Intento 2: Fallback a localhost (útil en simuladores)
+      try {
+        const fallback = "http://localhost:3000/api/cierres";
+        const responseFallback = await fetch(fallback, {
+           headers: { Authorization: `Bearer ${token}` },
+        });
+        const dataFallback = await responseFallback.json();
+
+        if (dataFallback.exito) {
+          setCierres(dataFallback.datos);
+        } else {
+          Alert.alert("Error", "No se pudieron cargar los cierres.");
+        }
+      } catch (err2) {
+        console.error("❌ Error total de conexión:", err2);
+        Alert.alert("Error de conexión", "Verifica tu conexión con el servidor.");
+      }
     } finally {
       setLoading(false);
+      setRefrescando(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     obtenerCierres();
-  }, []);
+  }, [obtenerCierres]);
 
-  // 🔹 Mostrar modal de eliminación
+  const onRefresh = useCallback(() => {
+    setRefrescando(true);
+    obtenerCierres();
+  }, [obtenerCierres]);
+
+  // 🔹 4. Función auxiliar para mostrar duración
+  const calcularDuracion = (
+    fechaInicio: string | null,
+    fechaFin: string | null,
+    horaInicio: string | null,
+    horaFin: string | null
+  ) => {
+    try {
+      if (fechaInicio && fechaFin) {
+        const f1 = new Date(fechaInicio);
+        const f2 = new Date(fechaFin);
+        let dias = Math.ceil((f2.getTime() - f1.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        
+        if (horaInicio && horaFin) {
+          const [h1, m1] = horaInicio.split(":").map(Number);
+          const [h2, m2] = horaFin.split(":").map(Number);
+          const totalHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
+          const horas = totalHoras > 0 ? Math.round(totalHoras) : 0;
+          return `Duración: ${dias} día${dias !== 1 ? "s" : ""} y ${horas} hora${horas !== 1 ? "s" : ""}`;
+        }
+        return `Duración: ${dias} día${dias !== 1 ? "s" : ""}`;
+      }
+      if (horaInicio && horaFin) {
+        const [h1, m1] = horaInicio.split(":").map(Number);
+        const [h2, m2] = horaFin.split(":").map(Number);
+        const totalHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
+        const horas = totalHoras > 0 ? Math.round(totalHoras) : 0;
+        return `Duración: ${horas} hora${horas !== 1 ? "s" : ""}`;
+      }
+      return "Duración indefinida";
+    } catch (e) {
+      return "Duración desconocida";
+    }
+  };
+
+  // 🔹 Navegación para editar (Con parámetros correctos)
+  const navegarAEditarCierre = (cierre: Cierre) => {
+    router.push({
+      pathname: "/editarCierre", // Asegúrate de que esta ruta exista en tu proyecto
+      params: {
+        cierreId: cierre.id.toString(),
+        lugarCierre: cierre.lugarCierre,
+        categoria: cierre.categoria || "",
+        descripcion: cierre.descripcion || "",
+        fechaInicio: cierre.fechaInicio || "",
+        fechaFin: cierre.fechaFin || "",
+        horaInicio: cierre.horaInicio || "",
+        horaFin: cierre.horaFin || "",
+        idZona: cierre.idZona?.toString() || "",
+      },
+    });
+  };
+
+  // 🔹 Eliminar cierre
   const handleMostrarModalEliminar = (cierre: Cierre) => {
     setCierreAEliminar(cierre);
     setModalVisible(true);
   };
 
-  // 🔹 Confirmar eliminación (con API)
   const handleConfirmarEliminar = async () => {
     if (!cierreAEliminar) return;
 
     try {
-      const response = await fetch(`${API_URL}/cierres/${cierreAEliminar.id}`, {
+      const response = await fetch(`${API_BASE}/cierres/${cierreAEliminar.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -80,10 +188,15 @@ const PrincAdmin = () => {
         },
       });
 
-      if (!response.ok) throw new Error("Error al eliminar el cierre");
+      const data = await response.json();
 
-      setCierres((prev) => prev.filter((c) => c.id !== cierreAEliminar.id));
-      Alert.alert("Éxito", "Cierre eliminado correctamente.");
+      // Verificar exito según la estructura del backend funcional
+      if (response.ok && data.exito) {
+        setCierres((prev) => prev.filter((c) => c.id !== cierreAEliminar.id));
+        Alert.alert("Éxito", "Cierre eliminado correctamente.");
+      } else {
+        throw new Error(data.mensaje || "No se pudo eliminar");
+      }
     } catch (error) {
       console.error("Error al eliminar cierre:", error);
       Alert.alert("Error", "No se pudo eliminar el cierre.");
@@ -93,32 +206,25 @@ const PrincAdmin = () => {
     }
   };
 
-  // 🔹 Cancelar eliminación
   const handleCancelarEliminar = () => {
     setModalVisible(false);
     setCierreAEliminar(null);
   };
 
-  // 🔹 Cerrar sesión
   const handleCerrarSesion = () => {
-    Alert.alert(
-      "Cerrar Sesión",
-      "¿Está seguro que desea cerrar la sesión?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Sí, cerrar",
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-            router.replace("/");
-          },
+    Alert.alert("Cerrar Sesión", "¿Está seguro que desea cerrar la sesión?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Sí, cerrar",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+          router.replace("/");
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  // 🔹 Navegar a crear cierre
   const navegarACrearCierre = () => {
     router.push("/crearCierre");
   };
@@ -126,16 +232,17 @@ const PrincAdmin = () => {
   return (
     <View style={styles.container}>
       <HeaderSimple />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refrescando} onRefresh={onRefresh} />}
+      >
         <TituloPestania style={styles.title}>Cierres Activos</TituloPestania>
 
-        {loading ? (
+        {loading && !refrescando ? (
           <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 50 }} />
         ) : cierres.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <TituloPestania style={styles.emptyText}>
-              No hay cierres activos
-            </TituloPestania>
+            <Text style={styles.emptyText}>No hay cierres activos</Text>
           </View>
         ) : (
           cierres.map((cierre) => (
@@ -143,15 +250,11 @@ const PrincAdmin = () => {
               key={cierre.id}
               titulo={cierre.lugarCierre || "Sin título"}
               subtitulo={[
-                cierre.zona ? `Zona: ${cierre.zona}` : "",
-                cierre.fechaInicio && cierre.fechaFin
-                  ? `Duración: ${cierre.fechaInicio} a ${cierre.fechaFin}`
-                  : cierre.horaInicio && cierre.horaFin
-                  ? `Horario: ${cierre.horaInicio} - ${cierre.horaFin}`
-                  : "",
+                cierre.zona ? `Zona: ${cierre.zona.nombreZona}` : "Sin zona asignada",
+                calcularDuracion(cierre.fechaInicio, cierre.fechaFin, cierre.horaInicio, cierre.horaFin),
                 cierre.descripcion ? `Motivo: ${cierre.descripcion}` : "",
-              ].filter(Boolean)} // 🔹 Elimina los vacíos
-              onPressEditar={() => console.log("Editar cierre", cierre.id)}
+              ].filter(Boolean)}
+              onPressEditar={() => navegarAEditarCierre(cierre)}
               onPressEliminar={() => handleMostrarModalEliminar(cierre)}
               style={styles.card}
             />
