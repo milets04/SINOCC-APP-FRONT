@@ -2,7 +2,6 @@ import CierreAct from "@/componentes/moleculas/cierreAct";
 import Header from "@/componentes/moleculas/header";
 import MenuInf from "@/componentes/moleculas/menuInf";
 import { Ionicons } from "@expo/vector-icons";
-import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import {
@@ -31,27 +30,9 @@ type Cierre = {
   ubicaciones: Array<{ id: number; idCierre: number; latitud: string; longitud: string }>;
 };
 
-const obtenerApiUrl = () => {
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
-    if (host) {
-      const ip = host.split(":")[0];
-      const apiUrl = `http://${ip}:3000/api`;
-      console.log("🌐 API URL detectada automáticamente:", apiUrl);
-      return apiUrl;
-    }
-  } catch (error) {
-    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
-  }
-
-  console.log("🌐 Usando localhost como fallback");
-  return "http://localhost:3000/api";
-};
-
-const API_BASE = obtenerApiUrl();
+console.log('🌐 API Configurada:', API_URL);
 
 const Principal = () => {
   const router = useRouter();
@@ -62,7 +43,7 @@ const Principal = () => {
   const obtenerCierres = useCallback(async () => {
     setCargando(true);
     try {
-      const response = await fetch(`${API_BASE}/cierres`);
+      const response = await fetch(`${API_URL}/cierres`);
       if (!response.ok) throw new Error("Error al conectar con el servidor");
       const data = await response.json();
 

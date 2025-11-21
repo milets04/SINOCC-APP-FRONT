@@ -1,12 +1,11 @@
 import Header from '@/componentes/moleculas/header';
 import MenuInf from '@/componentes/moleculas/menuInf';
 import NotificationCard from '@/componentes/moleculas/notificacion';
+import { useZonas } from '@/contexto/zonas';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, View, ActivityIndicator, Alert,RefreshControl, Text } from 'react-native';
-import Constants from "expo-constants";
-import React, { useEffect, useState, useCallback } from 'react';
-import { useZonas } from '@/contexto/zonas';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type Cierre = {
   id:number;
@@ -22,26 +21,9 @@ type Cierre = {
   modifiedAt?: string;
 }
 
-const obtenerApiUrl = () => {
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
-    if (host) {
-      const ip = host.split(":")[0];
-      const apiUrl = `http://${ip}:3000/api`;
-      console.log("🌐 API URL detectada (notificaciones):", apiUrl);
-      return apiUrl;
-    }
-  } catch (error) {
-    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
-  }
-  console.log("🌐 Usando localhost como fallback");
-  return "http://localhost:3000/api";
-};
-
-const API_BASE = obtenerApiUrl();
+console.log('🌐 API Configurada:', API_URL);
 
 const categoriaColor = {
   ALTO: "red",
@@ -71,7 +53,7 @@ export default function PantallaNotificaciones() {
   const obtenerCierres = useCallback(async () => {
     setCargando(true);
     try {
-      const response = await fetch(`${API_BASE}/cierres`);
+      const response = await fetch(`${API_URL}/cierres`);
       if (!response.ok) throw new Error("Error al conectar con el servidor");
 
       const data = await response.json();

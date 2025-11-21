@@ -1,28 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 
-const obtenerApiUrl = () => { 
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
-    if (host) {
-      const ip = host.split(':')[0]; // toma la IP antes del puerto
-      return `http://${ip}:3000/api`; // ⚠️ cambia el puerto si tu backend usa otro
-    }
-  } catch (error) {
-    console.warn('No se pudo detectar la IP local automáticamente.');
-  }
-
-  // Fallback en caso de que no detecte la IP
-  return 'http://localhost:3000/api';
-};
-
-const API_URL = obtenerApiUrl();
-
-console.log('🌐 API detectada automáticamente:', API_URL);
+console.log('🌐 API Configurada:', API_URL);
 interface RespuestaLogin {
   exito: boolean;
   mensaje: string;

@@ -3,31 +3,13 @@ import { FormularioCierreData } from '@/componentes/moleculas/formularioCierre';
 import TemplateEditarCierre from '@/componentes/templates/templateEditarCierre';
 import { useAuth } from '@/contexto/autenticacion';
 import { useUbicaciones } from '@/contexto/ubicaciones';
-import Constants from 'expo-constants';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 
-const obtenerApiUrl = () => { 
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
-    if (host) {
-      const ip = host.split(':')[0]; 
-      const apiUrl = `http://${ip}:3000/api`;
-      console.log('🌐 API URL detectada (editarCierre):', apiUrl);
-      return apiUrl;
-    }
-  } catch (error) {
-    console.warn('⚠️ No se pudo detectar la IP local automáticamente.');
-  }
-  console.log('🌐 Usando localhost como fallback');
-  return 'http://localhost:3000/api';
-};
-
-const API_URL = obtenerApiUrl(); 
+console.log('🌐 API Configurada:', API_URL);
 
 const categoriasOptions: SelectOption[] = [
   { label: 'Bajo', value: 'BAJO' },

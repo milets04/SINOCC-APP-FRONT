@@ -6,7 +6,6 @@ import MenuInf from "@/componentes/moleculas/menuInf";
 import { useAuth } from "@/contexto/autenticacion";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import {
@@ -40,27 +39,9 @@ type Cierre = {
   }>;
 };
 
-const obtenerApiUrl = () => {
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
-    if (host) {
-      const ip = host.split(":")[0];
-      const apiUrl = `http://${ip}:3000/api`;
-      console.log("🌐 API URL detectada automáticamente:", apiUrl);
-      return apiUrl;
-    }
-  } catch (error) {
-    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
-  }
-
-  console.log("🌐 Usando localhost como fallback");
-  return "http://localhost:3000/api";
-};
-
-const API_BASE = obtenerApiUrl();
+console.log('🌐 API Configurada:', API_URL);
 
 const princSuper = () => {
   const router = useRouter();
@@ -92,7 +73,7 @@ const princSuper = () => {
     setCargando(true);
 
     try {
-      let response = await fetch(`${API_BASE}/cierres`);
+      let response = await fetch(`${API_URL}/cierres`);
       if (!response.ok)
         throw new Error("Fallo con la URL base, probando fallback...");
 
@@ -225,7 +206,7 @@ const princSuper = () => {
             }
 
             try {
-              const res = await fetch(`${API_BASE}/cierres/${cierre.id}`, {
+              const res = await fetch(`${API_URL}/cierres/${cierre.id}`, {
                 method: "DELETE",
                 headers: {
                   Authorization: `Bearer ${token}`,

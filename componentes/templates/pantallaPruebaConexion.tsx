@@ -6,7 +6,7 @@ export default function PantallaPruebaConexion() {
 
   const probarConexion = async () => {
     try {
-      const res = await fetch('http://192.168.100.9:3000/api/estado');
+      const res = await fetch('https://sinocc-backend.onrender.com/api/estado');
       const datos = await res.json();
       setRespuesta(JSON.stringify(datos, null, 2));
     } catch (error: any) {

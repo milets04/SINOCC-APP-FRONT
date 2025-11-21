@@ -54,7 +54,7 @@ interface UbicacionesContextType {
 
 const UbicacionesContext = createContext<UbicacionesContextType | undefined>(undefined);
 
-const API_BASE_URL = 'TU_URL_BASE_API'; // Reemplaza con tu URL real
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
 export const UbicacionesProvider = ({ children }: { children: ReactNode }) => {
   const [ubicaciones, setUbicaciones] = useState<UbicacionData[]>([]);
@@ -65,7 +65,7 @@ export const UbicacionesProvider = ({ children }: { children: ReactNode }) => {
 
   // Función para obtener cierres activos
   const obtenerCierresActivos = async (): Promise<Cierre[]> => {
-    const response = await fetch(`${API_BASE_URL}/api/cierres/activos`, {
+    const response = await fetch(`${API_URL}/api/cierres/activos`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

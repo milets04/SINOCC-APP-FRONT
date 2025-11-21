@@ -4,7 +4,6 @@ import CardCierre from "@/componentes/moleculas/cardCierre";
 import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import ModalConfirmacion from "@/componentes/moleculas/modalConfirmacion";
 import { useAuth } from "@/contexto/autenticacion";
-import Constants from "expo-constants"; // 🔹 Importante para la IP dinámica
 import { useRouter } from "expo-router";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import {
@@ -17,26 +16,9 @@ import {
   View,
 } from "react-native";
 
-// 🔹 1. Lógica de conexión dinámica (Copiada del archivo funcional)
-const obtenerApiUrl = () => {
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
-    if (host) {
-      const ip = host.split(":")[0];
-      const apiUrl = `http://${ip}:3000/api`;
-      console.log("🌐 API URL detectada automáticamente:", apiUrl);
-      return apiUrl;
-    }
-  } catch (error) {
-    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
-  }
-  return "http://localhost:3000/api";
-};
-
-const API_BASE = obtenerApiUrl();
+console.log('🌐 API Configurada:', API_URL);
 
 // 🔹 2. Tipo actualizado para coincidir con el backend
 interface Cierre {
@@ -69,7 +51,7 @@ const PrincAdmin = () => {
     setLoading(true);
     try {
       // Intento 1: URL Dinámica
-      let response = await fetch(`${API_BASE}/cierres`, {
+      let response = await fetch(`${API_URL}/cierres`, {
         headers: { Authorization: `Bearer ${token}` }, // Mantenemos el token por seguridad
       });
 
@@ -180,7 +162,7 @@ const PrincAdmin = () => {
     if (!cierreAEliminar) return;
 
     try {
-      const response = await fetch(`${API_BASE}/cierres/${cierreAEliminar.id}`, {
+      const response = await fetch(`${API_URL}/cierres/${cierreAEliminar.id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

@@ -5,33 +5,14 @@ import HeaderSimple from "@/componentes/moleculas/headerSimple";
 import PrincAdmin from "@/componentes/templates/princAdmin";
 import PrincSuper from "@/componentes/templates/princSuper";
 import { useAuth } from "@/contexto/autenticacion";
-import Constants from 'expo-constants';
 import React, { memo, useState } from "react";
 import { ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
-const obtenerApiUrl = () => { 
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
-    if (host) {
-      const ip = host.split(':')[0]; 
-      const apiUrl = `http://${ip}:3000/api`;
-      console.log('🌐 API URL detectada automáticamente:', apiUrl);
-      return apiUrl;
-    }
-  } catch (error) {
-    console.warn('⚠️ No se pudo detectar la IP local automáticamente.');
-  }
-
-  console.log('🌐 Usando localhost como fallback');
-  return 'http://localhost:3000/api';
-};
-
-const API_URL = obtenerApiUrl(); 
+console.log('🌐 API Configurada:', API_URL);
 
 const IniSesion = () => {
   const [correo, setCorreo] = useState("");

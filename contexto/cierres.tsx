@@ -1,21 +1,6 @@
-import Constants from 'expo-constants';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
-const obtenerApiUrl = () => { 
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
-
-    if (host) {
-      const ip = host.split(':')[0];
-      return `http://${ip}:3000/api`;
-    }
-  } catch {}
-  return 'http://localhost:3000/api';
-};
-
-const API_URL = obtenerApiUrl();
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
 export interface UbicacionCierre {
   latitud: number;
