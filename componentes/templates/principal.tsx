@@ -183,9 +183,8 @@ const Principal = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8F8F8",
-    paddingTop: 20,
-    paddingHorizontal: 16,
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 16,
   },
   content: {
     paddingVertical: 20,
