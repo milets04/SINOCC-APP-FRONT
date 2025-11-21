@@ -20,7 +20,6 @@ const API_URL = 'https://sinocc-backend.onrender.com/api';
 
 console.log('🌐 API Configurada:', API_URL);
 
-// 🔹 2. Tipo actualizado para coincidir con el backend
 interface Cierre {
   id: number;
   categoria: string | null;
@@ -65,7 +64,7 @@ const PrincAdmin = () => {
         throw new Error(data.mensaje || "Error al obtener cierres");
       }
     } catch (err1) {
-      console.warn("⚠️ Error con URL principal, probando fallback...", err1);
+      console.warn("Error con URL principal, probando fallback...", err1);
       
       // Intento 2: Fallback a localhost (útil en simuladores)
       try {
@@ -81,7 +80,7 @@ const PrincAdmin = () => {
           Alert.alert("Error", "No se pudieron cargar los cierres.");
         }
       } catch (err2) {
-        console.error("❌ Error total de conexión:", err2);
+        console.error("Error total de conexión:", err2);
         Alert.alert("Error de conexión", "Verifica tu conexión con el servidor.");
       }
     } finally {
