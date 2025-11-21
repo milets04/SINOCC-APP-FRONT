@@ -320,10 +320,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F8F8",
-    paddingTop: 25,
-    paddingHorizontal: 16,
+    paddingTop: 0,
   },
-  content: { alignItems: "center", paddingBottom: 50, paddingTop: 10 },
+  content: { alignItems: "center", paddingHorizontal: 16, paddingBottom: 50, paddingTop: 10 },
   title: { marginVertical: 20, marginHorizontal: 6, alignSelf: "flex-start" },
   centeredContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 10, fontSize: 16, color: "#666" },
