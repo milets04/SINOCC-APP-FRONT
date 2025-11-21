@@ -71,10 +71,9 @@ export default function EditarCierre() {
             longitud: Number(u.longitud),
           })) || [];
 
-        //if (!yaInicializado && ubicacionesSeleccionadas.length === 0) {
-          setUbicaciones(ubicacionesData);
-        //  yaInicializado = true;
-       // } 
+        if (ubicacionesSeleccionadas.length === 0) {
+           setUbicaciones(ubicacionesData);
+        }
 
         setDatosIniciales({
           categoria: cierre.categoria,
@@ -97,7 +96,7 @@ export default function EditarCierre() {
     };
 
     fetchData();
-  }, [cierreId, token]);
+  }, [cierreId, token, ubicacionesSeleccionadas.length]);
 
   const handleFormSubmit = async (data: FormularioCierreData) => {
     if (!cierreId) {

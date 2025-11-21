@@ -39,6 +39,7 @@ export default function PantallaSeleccionarMapa() {
           height={Dimensions.get('window').height - 250}
           ubicaciones={ubicacionesParaMapa} 
           onMapPress={handleMapPress}
+          mostrarLinea={true} 
         />
         
         <Boton
