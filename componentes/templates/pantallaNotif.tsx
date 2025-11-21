@@ -128,7 +128,7 @@ export default function PantallaNotificaciones() {
         {cierresFiltrados.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="notifications-off-outline" size={48} color="gray" />
-            <Text style={styles.emptyText}>No hay notificaciones activas</Text>
+            <Text style={styles.emptyText}>No hay notificaciones activas en las zonas seleccionadas</Text>
           </View>
         ) : (
           cierresFiltrados.map((cierre) => (

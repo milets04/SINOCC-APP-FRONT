@@ -93,9 +93,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F8F8',
   },
   zonesSection: {
-    marginTop: 16,
-    backgroundColor: '#F8F8F8',
-    marginLeft: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 50,
   },
   buttonContainer: {
     alignItems: 'center',
