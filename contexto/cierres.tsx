@@ -1,21 +1,6 @@
-import Constants from 'expo-constants';
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
-const obtenerApiUrl = () => { 
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
-
-    if (host) {
-      const ip = host.split(':')[0];
-      return `http://${ip}:3000/api`;
-    }
-  } catch {}
-  return 'http://localhost:3000/api';
-};
-
-const API_URL = obtenerApiUrl();
+const API_URL = 'https://sinocc-backend.onrender.com/api';
 
 export interface UbicacionCierre {
   latitud: number;
@@ -84,9 +69,18 @@ export const CierresProvider = ({ children }: { children: ReactNode }) => {
       setErrorCierres(null);
       const data = await obtenerCierresActivos(); // 
 
+      // ----- PASO 1: VER DATOS CRUDOS -----
+      // Revisa en la consola de tu terminal (donde corre 'expo start')
+      // qué es lo que realmente llega de la API.
+      console.log('DATOS CRUDOS DE /api/cierres:', JSON.stringify(data, null, 2));
+      // ------------------------------------
+
       const primerosMarcadores = obtenerPrimerosMarcadores(data); // 
 
+      // ----- PASO 2: VER DATOS FILTRADOS -----
+      // Revisa si esta lista está vacía. Si lo está, confirma el diagnóstico.
       console.log('DATOS FILTRADOS (primeros marcadores):', JSON.stringify(primerosMarcadores, null, 2));
+      // ------------------------------------
       
       setCierres(primerosMarcadores);
     } catch (e: any) {

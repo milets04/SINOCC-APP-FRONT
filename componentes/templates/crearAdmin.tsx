@@ -8,7 +8,7 @@ import HeaderSimple from '../moleculas/headerSimple';
 
 const SINOCC_PM = require('../../assets/images/SINOCC_PM.png');
 
-import conexion from "@/contexto/conexion";
+import conexion from "@/app/conexion";
 
 export default function CrearAdmin() {
   const [nombre, setNombre] = useState('');
