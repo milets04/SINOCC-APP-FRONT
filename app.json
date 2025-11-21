@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.milets04.SINOCCAPPFRONT"
     },
     "web": {
       "output": "static",
@@ -38,11 +39,28 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      // 💡 NUEVO PLUGIN: Configura los repositorios para Mapbox
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://api.mapbox.com/downloads/v2/releases/maven"
+            ]
+          }
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9fba54eb-891c-48d1-a448-77e189b18933"
+      }
     }
   }
 }
