@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View, ViewStyle } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import MarcadorMapa from '../atomos/marcadorMapa';
 
 export interface UbicacionCierre {
@@ -112,7 +112,7 @@ useEffect(() => {
       <MapView
         ref={mapRef}
         style={styles.map}
-        provider={PROVIDER_DEFAULT}
+        provider={PROVIDER_GOOGLE}
         initialRegion={initialRegion}
         onPress={handleMapPress}
         onMapReady={() => setMapReady(true)} // Detectar cuando el mapa está listo
