@@ -1,13 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, SafeAreaView, StyleSheet, Text, View } from 'react-native'; // Mantengo Dimensions por ahora, aunque su uso se reduce
 
 import Mapa, { UbicacionCierre } from '@/componentes/moleculas/mapa';
 import MenuInf from '@/componentes/moleculas/menuInf';
-import Constants from 'expo-constants';
-
-// Interface para el cierre completo
+const API_BASE = 'https://sinocc-backend.onrender.com/api';
 interface CierreCompleto {
   id: number;
   categoria: string | null;
@@ -24,29 +22,6 @@ interface CierreCompleto {
   ubicaciones: Array<{ id: number; idCierre: number; latitud: string; longitud: string }>;
 }
 
-// Función para obtener la URL de la API (igual que en Principal)
-const obtenerApiUrl = () => {
-  try {
-    const host =
-      Constants?.expoConfig?.hostUri ||
-      Constants?.manifest2?.extra?.expoClient?.hostUri;
-
-    if (host) {
-      const ip = host.split(":")[0];
-      const apiUrl = `http://${ip}:3000/api`;
-      console.log("🌐 API URL detectada automáticamente:", apiUrl);
-      return apiUrl;
-    }
-  } catch (error) {
-    console.warn("⚠️ No se pudo detectar la IP local automáticamente.");
-  }
-
-  console.log("🌐 Usando localhost como fallback");
-  return "http://localhost:3000/api";
-};
-
-const API_BASE = obtenerApiUrl();
-
 const MapaCierre: React.FC = () => {
   const router = useRouter();
   const { cierreId } = useLocalSearchParams<{ cierreId: string }>();
@@ -54,15 +29,12 @@ const MapaCierre: React.FC = () => {
   const [cargando, setCargando] = useState(true);
   const [ubicacionesMapa, setUbicacionesMapa] = useState<UbicacionCierre[]>([]);
 
-  const screenHeight = Dimensions.get('window').height;
-  const menuHeight = 60;
-  const mapaHeight = screenHeight - menuHeight - 50;
+  const mapaHeight = Dimensions.get('window').height; 
 
   const [zoomCoords, setZoomCoords] = useState<
     { latitude: number; longitude: number }[]
   >([]);
 
-  // Función para obtener los datos del cierre específico
   const obtenerCierre = async () => {
     if (!cierreId) {
       Alert.alert("Error", "No se proporcionó un ID de cierre válido");
@@ -71,8 +43,10 @@ const MapaCierre: React.FC = () => {
 
     setCargando(true);
     try {
-      const response = await fetch(`${API_BASE}/cierres/${cierreId}`);
-      if (!response.ok) throw new Error("Error al conectar con el servidor");
+      const response = await fetch(`${API_BASE}/cierres/${cierreId}`); 
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
       
       const data = await response.json();
 
@@ -103,7 +77,7 @@ const MapaCierre: React.FC = () => {
       console.error("❌ Error al obtener el cierre:", error);
       Alert.alert(
         "Error de conexión",
-        "No se pudo obtener la información del cierre. Verifica tu conexión o la IP del servidor."
+        "No se pudo obtener la información del cierre. Verifica tu conexión a internet." 
       );
     } finally {
       setCargando(false);
@@ -156,7 +130,6 @@ const MapaCierre: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Información del cierre */}
         <View style={styles.infoContainer}>
           <Text style={styles.titulo}>{cierre.lugarCierre}</Text>
           <Text style={styles.lugar}>{cierre.zona?.nombreZona || "Sin zona"}</Text>
@@ -176,20 +149,17 @@ const MapaCierre: React.FC = () => {
             </Text>
           </View>
         </View>
-
-        {/* Mapa */}
-        <View style={[styles.mapaContainer, { height: mapaHeight }]}>
+        <View style={styles.mapaContainer}>
           <Mapa
             ubicaciones={ubicacionesMapa}
             onMarcadorPress={handleMarcadorPress}
             width={Dimensions.get('window').width}
-            height={mapaHeight}
+            height={mapaHeight} 
             zoomCoords={zoomCoords}
             mostrarLinea={true}
           />
         </View>
 
-        {/* Menú Inferior */}
         <MenuInf
           homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
           mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />}
