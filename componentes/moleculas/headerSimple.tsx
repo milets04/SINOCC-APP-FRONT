@@ -8,12 +8,14 @@ interface HeaderSimpleProps {
   onPressRoute?: Href; 
 }
 
-const HeaderSimple: React.FC<HeaderSimpleProps> = ({ onPressRoute = "/" }) => {
+const HeaderSimple: React.FC<HeaderSimpleProps> = ({ onPressRoute = undefined }) => {
   
   const router = useRouter();
 
   const handlePress = () => {
-    router.push(onPressRoute);
+    if (onPressRoute) {
+      router.push(onPressRoute);
+    }
   };
 
   return (

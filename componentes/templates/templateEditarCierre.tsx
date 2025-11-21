@@ -33,7 +33,6 @@ const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
   };
 
   const handleEliminarUbicacion = (id: string | number) => {
-    // ✅ CAMBIADO: Usar setUbicaciones de las props (del contexto)
     setUbicaciones(
       ubicacionesSeleccionadas.filter((ub) => ub.id !== id)
     );
@@ -54,7 +53,7 @@ const TemplateEditarCierre: React.FC<TemplateEditarCierreProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <HeaderSimple onPressRoute="/superAdmin"/>
+      <HeaderSimple/>
 
       <ScrollView 
         style={styles.scrollView}
