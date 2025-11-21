@@ -299,7 +299,7 @@ const princSuper = () => {
         <Boton
           texto="Cerrar Sesión"
           onPress={handleCerrarSesion}
-          variante="primario"
+          variante="secundario"
           tamaño="grande"
           ancho="ajustado"
           estilo={styles.button}
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   centeredContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 10, fontSize: 16, color: "#666" },
   emptyText: { fontSize: 16, color: "#666", textAlign: "center", marginTop: 30 },
-  button: { marginTop: 20 },
+  button: { marginTop: 20,},
 });
 
 export default memo(princSuper);

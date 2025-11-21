@@ -19,8 +19,6 @@ import {
 const API_URL = 'https://sinocc-backend.onrender.com/api';
 
 console.log('🌐 API Configurada:', API_URL);
-
-// 🔹 2. Tipo actualizado para coincidir con el backend
 interface Cierre {
   id: number;
   categoria: string | null;
