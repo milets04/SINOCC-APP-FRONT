@@ -51,21 +51,26 @@ const Mapa: React.FC<MapaProps> = ({
     onMarcadorPress?.(ubicacion);
   };
 
-  // Línea entre puntos según ID
-  const [coordenadasLinea, setCoordenadasLinea] = useState<{ latitude: number; longitude: number }[]>([]);
-  useEffect(() => {
-    if (mostrarLinea && ubicaciones.length >= 2) {
-      const ordenadas = [...ubicaciones].sort((a, b) => Number(a.id) - Number(b.id));
-      setCoordenadasLinea(
-        ordenadas.map(u => ({
-          latitude: u.latitud,
-          longitude: u.longitud,
-        }))
-      );
-    } else {
-      setCoordenadasLinea([]); 
-    }
-  }, [ubicaciones, mostrarLinea]);
+const [coordenadasLinea, setCoordenadasLinea] = useState<{ latitude: number; longitude: number }[]>([]);
+useEffect(() => {
+  if (mostrarLinea && ubicaciones.length >= 2) {
+    const ordenadas = [...ubicaciones].sort((a, b) => {
+        const idA = typeof a.id === 'string' ? parseInt(a.id, 10) : a.id;
+        const idB = typeof b.id === 'string' ? parseInt(b.id, 10) : b.id;
+        if (isNaN(idA) || isNaN(idB)) return 0; 
+        return idA - idB;
+    });
+
+    setCoordenadasLinea(
+      ordenadas.map(u => ({
+        latitude: u.latitud,
+        longitude: u.longitud,
+      }))
+    );
+  } else {
+    setCoordenadasLinea([]); 
+  }
+}, [ubicaciones, mostrarLinea]);
 
   // Auto-zoom y centrado mejorado
   useEffect(() => {

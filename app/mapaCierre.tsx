@@ -31,7 +31,6 @@ const MapaCierre: React.FC = () => {
   const [cargando, setCargando] = useState(true);
   const [ubicacionesMapa, setUbicacionesMapa] = useState<UbicacionCierre[]>([]);
 
-  // 💡 Obtén el ancho de la pantalla
   const screenWidth = Dimensions.get('window').width;
 
   const [zoomCoords, setZoomCoords] = useState<
@@ -133,7 +132,6 @@ const MapaCierre: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Información del cierre */}
         <View style={styles.infoContainer}>
           <Text style={styles.titulo}>{cierre.lugarCierre}</Text>
           <Text style={styles.lugar}>{cierre.zona?.nombreZona || "Sin zona"}</Text>
@@ -154,19 +152,16 @@ const MapaCierre: React.FC = () => {
           </View>
         </View>
 
-        {/* Mapa - Ahora le pasamos el ancho de la pantalla, pero no la altura */}
         <View style={styles.mapaContainer}>
           <Mapa
             ubicaciones={ubicacionesMapa}
             onMarcadorPress={handleMarcadorPress}
-            width={screenWidth} // 💡 Pasa el ancho completo de la pantalla
-            // height ya no es necesario aquí, el flex: 1 del mapaContainer y del Mapa interno lo controlan
+            width={screenWidth} 
             zoomCoords={zoomCoords}
             mostrarLinea={true}
           />
         </View>
 
-        {/* Menú Inferior */}
         <MenuInf
           homeIcon={<Ionicons name="home-outline" size={28} color="#146BF6" />}
           mapIcon={<Ionicons name="map-outline" size={28} color="#146BF6" />}
