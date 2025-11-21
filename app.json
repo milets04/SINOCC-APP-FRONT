@@ -20,7 +20,12 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.milets04.SINOCCAPPFRONT"
+      "package": "com.milets04.SINOCCAPPFRONT",
+      "config": {
+        "react-native-google-maps": {
+          "apiKey": "AIzaSyAJ1EDhXMG5CVHetHwI-m2XO4Elyi95Lm4" 
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -40,7 +45,6 @@
           }
         }
       ],
-      // 💡 NUEVO PLUGIN: Configura los repositorios para Mapbox
       [
         "expo-build-properties",
         {
