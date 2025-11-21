@@ -74,7 +74,7 @@ export default function PantallaConfi() {
         <MenuInf
           homeIcon={<Ionicons name="home-outline" size={32} color="#146BF6" />}
           mapIcon={<Ionicons name="map-outline" size={32} color="#146BF6" />}
-          onHomePresss={navegarAHome}
+          onHomePress={navegarAHome}
           onMapPress={navegarAlMapa}
         />
     </View>
