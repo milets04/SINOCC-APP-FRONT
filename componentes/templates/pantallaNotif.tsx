@@ -82,10 +82,10 @@ export default function PantallaNotificaciones() {
 
   const zonasActivas = zonas.filter(z => z.enabled).map(z => z.id);
   const zonasActivasSet = new Set(zonasActivas);
-
+  const mensaje = "No hay notificaciones activas en las zona(s) seleccionada(s)";
   const cierresFiltrados =
     zonasActivas.length === 0
-      ? [] // si no hay no muestra nada
+      ? [] 
       : cierres.filter(c =>
           zonasActivasSet.has(String(c.idZona))
         );
@@ -128,7 +128,7 @@ export default function PantallaNotificaciones() {
         {cierresFiltrados.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="notifications-off-outline" size={48} color="gray" />
-            <Text style={styles.emptyText}>No hay notificaciones activas en las zonas seleccionadas</Text>
+            <Text style={styles.emptyText}>{mensaje}</Text>
           </View>
         ) : (
           cierresFiltrados.map((cierre) => (
@@ -169,9 +169,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 50,
+    paddingHorizontal: 15,
   },
   emptyText: {
     color: "#666",
+    textAlign: "center",
     marginTop: 10,
     fontSize: 16,
   },
