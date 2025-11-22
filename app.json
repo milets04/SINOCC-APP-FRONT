@@ -26,8 +26,8 @@
         "ACCESS_FINE_LOCATION"
       ],
       "config": {
-        "react-native-google-maps": {
-          "apiKey": "AIzaSyAJ1EDhXMG5CVHetHwI-m2XO4Elyi95Lm4" 
+        "googleMaps": {
+          "apiKey": "AIzaSyAJ1EDhXMG5CVHetHwI-m2XO4Elyi95Lm4"
         }
       } 
     },
