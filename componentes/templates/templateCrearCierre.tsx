@@ -19,7 +19,13 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
   onSubmit,
 }) => {
   const router = useRouter();
-  const { ubicaciones, setUbicaciones, datosFormularioTemp, setDatosFormularioTemp } = useUbicaciones();
+   const { 
+    ubicaciones, 
+    setUbicaciones, 
+    datosFormularioTemp, 
+    setDatosFormularioTemp,
+    setZonaSeleccionada 
+  } = useUbicaciones();
 
   const handleEliminarUbicacion = (id: string | number) => {
     setUbicaciones(ubicaciones.filter((ub) => ub.id !== id));
@@ -37,6 +43,11 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
       fechaFin: datosActuales.fechaFin,
       motivo: datosActuales.motivo,
     });
+    
+    // Guardar la zona seleccionada para validación en el mapa
+    // Buscar el nombre de la zona en las opciones
+    const zonaSeleccionadaObj = zonas?.find(z => z.value === datosActuales.zona);
+    setZonaSeleccionada(zonaSeleccionadaObj?.label || null);
   };
 
   const handleAbrirMapa = () => {
@@ -57,12 +68,14 @@ const TemplateCrearCierre: React.FC<TemplateCrearCierreProps> = ({
       onSubmit(dataCompleta);
       setDatosFormularioTemp(null);
       setUbicaciones([]);
+      setZonaSeleccionada(null);
     }
   };
 
   useEffect(() => {
       if (!datosFormularioTemp) {
     setUbicaciones([]);
+    setZonaSeleccionada(null);
   }
   }, []);
 

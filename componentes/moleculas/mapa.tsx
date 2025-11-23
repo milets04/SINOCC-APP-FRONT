@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View, ViewStyle } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT, Region } from 'react-native-maps';
+import MapView, { Marker, Polygon, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import MarcadorMapa from '../atomos/marcadorMapa';
 
 export interface UbicacionCierre {
@@ -19,6 +19,7 @@ interface MapaProps {
   initialRegion?: Region;
   zoomCoords?: { latitude: number; longitude: number }[];
   mostrarLinea?: boolean; 
+  zonaSeleccionada?: string | null;
 }
 
 const COCHABAMBA_REGION: Region = {
@@ -26,6 +27,50 @@ const COCHABAMBA_REGION: Region = {
   longitude: -66.1570,
   latitudeDelta: 0.0922,
   longitudeDelta: 0.0421,
+};
+
+// Definir los polígonos de cada zona (coordenadas aproximadas - AJUSTAR A TUS ZONAS REALES)
+const POLIGONOS_ZONAS: Record<string, { latitude: number; longitude: number }[]> = {
+  'Quillacollo': [
+    { latitude: -17.411120, longitude: -66.206903 }, //-17.411120, -66.206903
+    { latitude: -17.334348, longitude: -66.201991 }, //-17.334348, -66.201991
+    { latitude: -17.334963, longitude: -66.300720 }, //-17.334963, -66.300720
+    { latitude: -17.413780, longitude: -66.294594 }, //-17.413780, -66.294594
+  ],
+  'Sacaba': [
+    { latitude: -17.371891, longitude: -66.087042 }, // -17.371891, -66.087042
+    { latitude: -17.404725, longitude: -66.084285 },  // -17.397489, -66.007263{ latitude: -17.404725, longitude: -66.084285 },
+    { latitude: -17.422835, longitude: -66.018441 }, // -17.404725, -66.084285
+    { latitude: -17.397489, longitude: -66.007263 }, // -17.422835, -66.018441
+    
+  ],
+  'Zona Centro': [
+    { latitude: -17.424500, longitude: -66.205495 }, // -17.424500, -66.205495
+    { latitude: -17.340170, longitude: -66.198288}, // -17.340170, -66.198288
+    { latitude: -17.368661, longitude: -66.097837 }, // -17.368661, -66.097837  
+    { latitude: -17.413215, longitude: -66.096573 }, // -17.413215, -66.096573
+  ],
+};
+
+const puntoEnPoligono = (
+  punto: { latitude: number; longitude: number },
+  poligono: { latitude: number; longitude: number }[]
+): boolean => {
+  let dentro = false;
+  
+  for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {
+    const xi = poligono[i].latitude;
+    const yi = poligono[i].longitude;
+    const xj = poligono[j].latitude;
+    const yj = poligono[j].longitude;
+    
+    const intersecta = ((yi > punto.longitude) !== (yj > punto.longitude))
+      && (punto.latitude < (xj - xi) * (punto.longitude - yi) / (yj - yi) + xi);
+    
+    if (intersecta) dentro = !dentro;
+  }
+  
+  return dentro;
 };
 
 const Mapa: React.FC<MapaProps> = ({
@@ -37,6 +82,7 @@ const Mapa: React.FC<MapaProps> = ({
   initialRegion = COCHABAMBA_REGION,
   zoomCoords,
   mostrarLinea = false,
+  zonaSeleccionada = null,
 }) => {
   const mapRef = useRef<MapView>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -101,6 +147,9 @@ useEffect(() => {
     return () => clearTimeout(timer);
   }, [zoomCoords, mapReady]);
 
+   // Obtener el polígono de la zona seleccionada
+  const poligonoZona = zonaSeleccionada ? POLIGONOS_ZONAS[zonaSeleccionada] : null;
+
   // Contenedor dinámico con TypeScript
   const containerStyle: ViewStyle = {
     width,
@@ -112,7 +161,7 @@ useEffect(() => {
       <MapView
         ref={mapRef}
         style={styles.map}
-        provider={PROVIDER_DEFAULT}
+        provider={PROVIDER_GOOGLE}
         initialRegion={initialRegion}
         onPress={handleMapPress}
         onMapReady={() => setMapReady(true)} // Detectar cuando el mapa está listo
@@ -126,6 +175,16 @@ useEffect(() => {
         pitchEnabled
         rotateEnabled
       >
+        {/* Polígono de la zona seleccionada */}
+        {poligonoZona && (
+          <Polygon
+            coordinates={poligonoZona}
+            fillColor="rgba(6, 142, 247, 0.15)"
+            strokeColor="#068EF7"
+            strokeWidth={2}
+          />
+        )}
+
         {/* Línea del cierre */}
         {coordenadasLinea.length >= 2 && (
           <Polyline
@@ -172,3 +231,7 @@ const styles = StyleSheet.create({
 });
 
 export default Mapa;
+
+//Exportar la función de validación para uso externo
+export { POLIGONOS_ZONAS, puntoEnPoligono };
+

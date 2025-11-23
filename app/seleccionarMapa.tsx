@@ -1,15 +1,49 @@
 import Boton from '@/componentes/atomos/boton';
-import Mapa, { UbicacionCierre } from '@/componentes/moleculas/mapa';
+import Mapa, { POLIGONOS_ZONAS, puntoEnPoligono, UbicacionCierre } from '@/componentes/moleculas/mapa';
 import { UbicacionData, useUbicaciones } from '@/contexto/ubicaciones';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Dimensions, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 export default function PantallaSeleccionarMapa() {
   const router = useRouter();
-  const { ubicaciones, setUbicaciones } = useUbicaciones();
+  const { ubicaciones, setUbicaciones, zonaSeleccionada } = useUbicaciones();
 
   const handleMapPress = (coordinate: { latitude: number; longitude: number }) => {
+
+    // Validar si hay zona seleccionada
+    if (!zonaSeleccionada) {
+      Alert.alert(
+        'Zona no seleccionada',
+        'Por favor seleccione una zona en el formulario antes de agregar marcadores',
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
+
+    // Obtener el polígono de la zona seleccionada
+    const poligonoZona = POLIGONOS_ZONAS[zonaSeleccionada];
+    
+    if (!poligonoZona) {
+      Alert.alert(
+        'Error',
+        `No se encontró la configuración de la zona "${zonaSeleccionada}"`,
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
+
+    // Validar si la coordenada está dentro de la zona
+    const estaDentro = puntoEnPoligono(coordinate, poligonoZona);
+
+    if (!estaDentro) {
+      Alert.alert(
+        'Ubicación fuera de zona',
+        `El marcador debe estar dentro de la zona "${zonaSeleccionada}". Por favor, toque dentro del área resaltada.`,
+        [{ text: 'Entendido' }]
+      );
+      return;
+    }
 
     const nuevaUbicacion: UbicacionData = {
       id: Date.now(),
@@ -32,7 +66,9 @@ export default function PantallaSeleccionarMapa() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.titulo}>Agrega los marcadores</Text>
-        <Text style={styles.subtitulo}>Toca el mapa para agregar un punto de cierre</Text>
+        <Text style={styles.subtitulo}>{zonaSeleccionada 
+            ? `Toca dentro del área resaltada de: ${zonaSeleccionada}`
+            : 'Selecciona una zona en el formulario primero'}</Text>
         
         <Mapa
           width={Dimensions.get('window').width - 40}
@@ -40,6 +76,7 @@ export default function PantallaSeleccionarMapa() {
           ubicaciones={ubicacionesParaMapa} 
           onMapPress={handleMapPress}
           mostrarLinea={true} 
+          zonaSeleccionada={zonaSeleccionada}
         />
         
         <Boton
