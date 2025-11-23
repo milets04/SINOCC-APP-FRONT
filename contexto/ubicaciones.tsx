@@ -50,6 +50,8 @@ interface UbicacionesContextType {
   cargandoCierres: boolean;
   errorCierres: string | null;
   recargarCierres: () => Promise<void>;
+  zonaSeleccionada: string | null;
+  setZonaSeleccionada: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const UbicacionesContext = createContext<UbicacionesContextType | undefined>(undefined);
@@ -62,6 +64,7 @@ export const UbicacionesProvider = ({ children }: { children: ReactNode }) => {
   const [cierres, setCierres] = useState<CierreConPrimerUbicacion[]>([]);
   const [cargandoCierres, setCargandoCierres] = useState(false);
   const [errorCierres, setErrorCierres] = useState<string | null>(null);
+  const [zonaSeleccionada, setZonaSeleccionada] = useState<string | null>(null);
 
   // Función para obtener cierres activos
   const obtenerCierresActivos = async (): Promise<Cierre[]> => {
@@ -132,6 +135,8 @@ export const UbicacionesProvider = ({ children }: { children: ReactNode }) => {
       cargandoCierres,
       errorCierres,
       recargarCierres,
+      zonaSeleccionada,
+      setZonaSeleccionada,
     }}>
       {children}
     </UbicacionesContext.Provider>
