@@ -72,3 +72,58 @@ const calcularNivelCierre = (
     return { nivel: null, horas: 0, dias: 0, error: 'Error al calcular el nivel del cierre' };
   }
 };
+export interface UbicacionData {
+  id: string | number;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+}
+
+export interface FormularioCierreData {
+  categoria: string | number;
+  lugarCierre: string;
+  zona: string | number;
+  horaInicio: string; 
+  horaFin: string; 
+  fechaInicio: string;
+  fechaFin: string;
+  motivo: string;
+  ubicaciones: UbicacionData[];
+  nivel?: 'Bajo' | 'Medio' | 'Alto'; // ✅ NUEVO: Campo calculado automáticamente
+}
+
+interface FormularioCierreProps {
+  categorias: SelectOption[];
+  zonas: SelectOption[];
+  onSubmit: (data: FormularioCierreData) => void;
+  onAbrirMapa: () => void;
+  ubicacionesSeleccionadas?: UbicacionData[];
+  onEliminarUbicacion?: (id: string | number) => void;
+  tituloBoton?: string;
+  datosIniciales?: Partial<FormularioCierreData>;
+  onGuardarDatosTemp?: (datos: FormularioCierreData) => void; 
+}
+
+const FormularioCierre: React.FC<FormularioCierreProps> = ({
+  categorias,
+  zonas,
+  onSubmit,
+  onAbrirMapa,
+  ubicacionesSeleccionadas = [],
+  onEliminarUbicacion,
+  tituloBoton = 'Crear',
+  datosIniciales,
+  onGuardarDatosTemp, 
+}) => {
+  const [formData, setFormData] = useState<FormularioCierreData>({
+    categoria: datosIniciales?.categoria || '',
+    lugarCierre: datosIniciales?.lugarCierre || '',
+    zona: datosIniciales?.zona || '',
+    horaInicio: datosIniciales?.horaInicio || '',
+    horaFin: datosIniciales?.horaFin || '',
+    fechaInicio: datosIniciales?.fechaInicio || '',
+    fechaFin: datosIniciales?.fechaFin || '',
+    motivo: datosIniciales?.motivo || '',
+    ubicaciones: datosIniciales?.ubicaciones || [],
+  });
+
