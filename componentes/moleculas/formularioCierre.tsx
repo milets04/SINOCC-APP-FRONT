@@ -22,66 +22,24 @@ const parseISODate = (dateString: string): Date => {
   return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
 };
 
-// ✅ NUEVA FUNCIÓN: Calcular nivel del cierre
-const calcularNivelCierre = (
-  fechaInicio: string,
-  horaInicio: string,
-  fechaFin: string,
-  horaFin: string
-): { nivel: 'Bajo' | 'Medio' | 'Alto' | null; horas: number; dias: number; error: string | null } => {
-  
-  if (!fechaInicio || !horaInicio || !fechaFin || !horaFin) {
-    return { nivel: null, horas: 0, dias: 0, error: 'Faltan datos de fecha u hora' };
-  }
+// --- NUEVA FUNCIONALIDAD: Función auxiliar para calcular horas ---
+const calcularDiferenciaHoras = (fInicio: string, fFin: string, hInicio: string, hFin: string): number => {
+  if (!fInicio || !fFin) return 0;
 
-  try {
-    // Combinar fecha y hora
-    const inicio = new Date(`${fechaInicio}T${horaInicio}:00`);
-    const fin = new Date(`${fechaFin}T${horaFin}:00`);
+  // Normalizar horas (si no se han seleccionado, asumimos 00:00)
+  // Aseguramos formato HH:mm agregando :00 para segundos
+  const horaIni = hInicio && hInicio.includes(':') ? hInicio : '00:00';
+  const horaFi = hFin && hFin.includes(':') ? hFin : '00:00';
 
-    // Validar que las fechas sean válidas
-    if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
-      return { nivel: null, horas: 0, dias: 0, error: 'Fechas u horas inválidas' };
-    }
+  // Crear fechas completas
+  const inicio = new Date(`${fInicio}T${horaIni}:00`);
+  const fin = new Date(`${fFin}T${horaFi}:00`);
 
-    // Calcular diferencia en milisegundos
-    const diferenciaMs = fin.getTime() - inicio.getTime();
-    
-    // Validar que la fecha/hora fin sea posterior a la de inicio
-    if (diferenciaMs <= 0) {
-      return { nivel: null, horas: 0, dias: 0, error: 'La fecha/hora de fin debe ser posterior a la de inicio' };
-    }
-
-    // Convertir a horas y días
-    const horas = diferenciaMs / (1000 * 60 * 60);
-    const dias = horas / 24;
-
-    // Validar duración mínima de 1 hora
-    if (horas < 1) {
-      return { nivel: null, horas, dias, error: 'El cierre debe tener una duración mínima de 1 hora' };
-    }
-
-    // Determinar nivel según las reglas
-    // Bajo: 1 hora a 24 horas (1 día)
-    // Medio: más de 24 horas hasta 144 horas (6 días)
-    // Alto: más de 144 horas (más de 6 días)
-    let nivel: 'Bajo' | 'Medio' | 'Alto';
-    
-    if (horas >= 1 && horas <= 24) {
-      nivel = 'Bajo';
-    } else if (horas > 24 && horas <= 144) { // 144 horas = 6 días
-      nivel = 'Medio';
-    } else {
-      nivel = 'Alto';
-    }
-
-    return { nivel, horas, dias, error: null };
-    
-  } catch (error) {
-    console.error('Error al calcular nivel:', error);
-    return { nivel: null, horas: 0, dias: 0, error: 'Error al calcular el nivel del cierre' };
-  }
+  // Calcular diferencia en milisegundos y convertir a horas
+  const diffMs = fin.getTime() - inicio.getTime();
+  return diffMs / (1000 * 60 * 60);
 };
+// ---------------------------------------------------------------
 
 export interface UbicacionData {
   id: string | number;
@@ -100,7 +58,6 @@ export interface FormularioCierreData {
   fechaFin: string;
   motivo: string;
   ubicaciones: UbicacionData[];
-  nivel?: 'Bajo' | 'Medio' | 'Alto'; // ✅ NUEVO: Campo calculado automáticamente
 }
 
 interface FormularioCierreProps {
@@ -138,12 +95,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     ubicaciones: datosIniciales?.ubicaciones || [],
   });
 
-  // ✅ NUEVO: Estado para mostrar el nivel en tiempo real
-  const [nivelInfo, setNivelInfo] = useState<{
-    nivel: 'Bajo' | 'Medio' | 'Alto';
-    duracion: string;
-  } | null>(null);
-
   useEffect(() => {
     if (datosIniciales) {
       setFormData((prev) => ({
@@ -170,29 +121,40 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     }
   }, [ubicacionesSeleccionadas]);
 
-  // ✅ NUEVO: Calcular nivel en tiempo real cuando cambian fechas/horas
+  // --- NUEVA FUNCIONALIDAD: Efecto para cálculo automático de Categoría ---
   useEffect(() => {
-    const { fechaInicio, horaInicio, fechaFin, horaFin } = formData;
-    
-    if (fechaInicio && horaInicio && fechaFin && horaFin) {
-      const resultado = calcularNivelCierre(fechaInicio, horaInicio, fechaFin, horaFin);
+    const { fechaInicio, fechaFin, horaInicio, horaFin } = formData;
+
+    // Solo calculamos si existen ambas fechas
+    if (fechaInicio && fechaFin) {
+      const horasTotales = calcularDiferenciaHoras(fechaInicio, fechaFin, horaInicio, horaFin);
       
-      if (resultado.nivel && !resultado.error) {
-        const duracion = resultado.dias >= 1 
-          ? `${resultado.dias.toFixed(1)} día${resultado.dias >= 2 ? 's' : ''}` 
-          : `${resultado.horas.toFixed(1)} hora${resultado.horas >= 2 ? 's' : ''}`;
-        
-        setNivelInfo({
-          nivel: resultado.nivel,
-          duracion: duracion
-        });
+      // Si la diferencia es negativa (fecha fin antes que inicio), no cambiamos nada aún 
+      // (la validación final está en handleSubmit)
+      if (horasTotales < 0) return;
+
+      let nuevaCategoria = 'BAJO';
+      const diasTotales = horasTotales / 24;
+
+      // Reglas de negocio:
+      // - Bajo: <= 1 día (24 horas)
+      // - Medio: > 1 día y <= 6 días
+      // - Alto: > 6 días
+      if (diasTotales <= 1) {
+        nuevaCategoria = 'BAJO';
+      } else if (diasTotales > 1 && diasTotales <= 6) {
+        nuevaCategoria = 'MEDIO';
       } else {
-        setNivelInfo(null);
+        nuevaCategoria = 'ALTO';
       }
-    } else {
-      setNivelInfo(null);
+
+      // Actualizamos solo si el valor es diferente para evitar re-renderizados infinitos
+      if (formData.categoria !== nuevaCategoria) {
+        setFormData((prev) => ({ ...prev, categoria: nuevaCategoria }));
+      }
     }
-  }, [formData.fechaInicio, formData.horaInicio, formData.fechaFin, formData.horaFin]);
+  }, [formData.fechaInicio, formData.fechaFin, formData.horaInicio, formData.horaFin, formData.categoria]);
+  // -----------------------------------------------------------------------
 
   const [showInicioPicker, setShowInicioPicker] = useState(false);
   const [showFinPicker, setShowFinPicker] = useState(false);
@@ -218,7 +180,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   const handleSubmit = () => {
     const { categoria, lugarCierre, zona, motivo, fechaInicio, fechaFin, horaInicio, horaFin } = formData;
 
-    // Validación de campos requeridos
     if (!categoria || !lugarCierre || !zona || !motivo) {
       Alert.alert('Error', 'Por favor complete todos los campos (Categoría, Lugar, Zona, Motivo).');
       return;
@@ -238,17 +199,21 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       return;
     }
 
-    if (!hasDatePair || !hasHourPair) {
-      Alert.alert('Error de Duración', 'Debe especificar fecha de inicio, fecha de fin, hora de inicio y hora de fin.');
+    if (!hasDatePair && !hasHourPair) {
+      Alert.alert('Error de Duración', 'Debe especificar un rango de fechas O un rango de horas para el cierre.');
       return;
     }
 
-    // ✅ NUEVA VALIDACIÓN: Calcular y validar el nivel del cierre
-    const resultado = calcularNivelCierre(fechaInicio, horaInicio, fechaFin, horaFin);
-    
-    if (resultado.error || !resultado.nivel) {
-      Alert.alert('Error de Duración', resultado.error || 'No se pudo calcular el nivel del cierre.');
+    if (hasDatePair && parseISODate(fechaFin) < parseISODate(fechaInicio)) {
+      Alert.alert("Error de Fechas", "La fecha de fin no puede ser anterior a la fecha de inicio.");
       return;
+    }
+    
+    if (hasHourPair && (!hasDatePair || fechaInicio === fechaFin)) {
+      if (horaFin < horaInicio) {
+        Alert.alert("Error de Horas", "La hora de fin no puede ser anterior a la hora de inicio para un cierre en el mismo día.");
+        return;
+      }
     }
 
     if (ubicacionesSeleccionadas.length === 0) {
@@ -256,48 +221,31 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       return;
     }
 
-    // ✅ NUEVO: Agregar el nivel calculado a los datos
-    const dataCompleta: FormularioCierreData = {
+    const dataCompleta = {
       ...formData,
-      nivel: resultado.nivel,
       ubicaciones: ubicacionesSeleccionadas,
     };
-
-    console.log(`✅ Cierre validado - Nivel: ${resultado.nivel}, Duración: ${resultado.dias.toFixed(2)} días (${resultado.horas.toFixed(1)} horas)`);
-    
     onSubmit(dataCompleta);
   };
-
   const handleAbrirMapa = () => {
     if (onGuardarDatosTemp) {
       onGuardarDatosTemp(formData);
     }
     onAbrirMapa();
   };
-
-  // ✅ NUEVA FUNCIÓN: Obtener color según el nivel
-  const getNivelColor = (nivel: 'Bajo' | 'Medio' | 'Alto') => {
-    switch (nivel) {
-      case 'Bajo':
-        return '#28a745'; // Verde
-      case 'Medio':
-        return '#ffc107'; // Amarillo/Naranja
-      case 'Alto':
-        return '#dc3545'; // Rojo
-      default:
-        return '#6c757d'; // Gris
-    }
-  };
-
   return (
     <View style={styles.container}>
+      {/* MODIFICACIÓN: Select bloqueado para evitar edición manual. 
+         Se muestra el valor calculado automáticamente.
+      */}
       <Select
         width={310}
         height={47}
-        placeholder="Categoría"
+        placeholder="Categoría (Automático)"
         options={categorias}
         value={formData.categoria}
-        onValueChange={(value) => setFormData({ ...formData, categoria: value })}
+        // Se desactiva la interacción manual
+        onValueChange={() => {}} 
       />
       
       <Input
@@ -359,19 +307,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
           </Text>
         </Pressable>
       </View>
-
-      {/* ✅ NUEVO: Indicador de nivel del cierre */}
-      {nivelInfo && (
-        <View style={[styles.nivelIndicador, { borderColor: getNivelColor(nivelInfo.nivel) }]}>
-          <View style={styles.nivelContenido}>
-            <Text style={styles.nivelLabel}>Nivel del cierre:</Text>
-            <Text style={[styles.nivelValor, { color: getNivelColor(nivelInfo.nivel) }]}>
-              {nivelInfo.nivel}
-            </Text>
-          </View>
-          <Text style={styles.nivelDuracion}>Duración: {nivelInfo.duracion}</Text>
-        </View>
-      )}
 
       <CalendarioPersonalizado
         visible={showInicioPicker}
@@ -458,6 +393,7 @@ const styles = StyleSheet.create({
     width: 310,
     gap: 6,
   },
+  
   fakeInput: {
     width: 152,
     height: 47,
@@ -477,35 +413,9 @@ const styles = StyleSheet.create({
   fakeInputTextSelected: {
     color: '#000000', 
   },
+
   motivoInput: {
     paddingTop: 12,
-  },
-  // ✅ NUEVOS ESTILOS: Indicador de nivel
-  nivelIndicador: {
-    width: 310,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderRadius: 8,
-    padding: 12,
-    gap: 6,
-  },
-  nivelContenido: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  nivelLabel: {
-    fontSize: 14,
-    color: '#333333',
-    fontWeight: '500',
-  },
-  nivelValor: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  nivelDuracion: {
-    fontSize: 13,
-    color: '#666666',
   },
   seccionUbicacion: {
     width: 314,
