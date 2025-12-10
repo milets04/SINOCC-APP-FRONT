@@ -22,24 +22,32 @@ const parseISODate = (dateString: string): Date => {
   return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
 };
 
-// --- NUEVA FUNCIONALIDAD: Función auxiliar para calcular horas ---
+// --- FUNCIÓN MEJORADA: Cálculo robusto de horas ---
 const calcularDiferenciaHoras = (fInicio: string, fFin: string, hInicio: string, hFin: string): number => {
-  if (!fInicio || !fFin) return 0;
+  if (!fInicio) return 0;
 
-  // Normalizar horas (si no se han seleccionado, asumimos 00:00)
-  // Aseguramos formato HH:mm agregando :00 para segundos
-  const horaIni = hInicio && hInicio.includes(':') ? hInicio : '00:00';
-  const horaFi = hFin && hFin.includes(':') ? hFin : '00:00';
+  // Si no hay fecha fin, es el mismo día
+  const fechaFinal = fFin || fInicio;
+  
+  // Normalizar horas 'HH:mm' a [HH, mm]
+  const [hIni, mIni] = (hInicio || '00:00').split(':').map(Number);
+  const [hFi, mFi] = (hFin || '00:00').split(':').map(Number);
 
-  // Crear fechas completas
-  const inicio = new Date(`${fInicio}T${horaIni}:00`);
-  const fin = new Date(`${fFin}T${horaFi}:00`);
+  // Parsear fechas manualmente para evitar errores de Timezone
+  const [y1, M1, d1] = fInicio.split('-').map(Number);
+  const [y2, M2, d2] = fechaFinal.split('-').map(Number);
 
-  // Calcular diferencia en milisegundos y convertir a horas
+  // Crear objetos fecha en UTC o locales consistentes
+  // Mes en JS es 0-indexado
+  const inicio = new Date(y1, M1 - 1, d1, hIni, mIni, 0);
+  const fin = new Date(y2, M2 - 1, d2, hFi, mFi, 0);
+
   const diffMs = fin.getTime() - inicio.getTime();
-  return diffMs / (1000 * 60 * 60);
+  const horas = diffMs / (1000 * 60 * 60);
+  
+  return horas;
 };
-// ---------------------------------------------------------------
+// ------------------------------------------------
 
 export interface UbicacionData {
   id: string | number;
@@ -84,7 +92,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   onGuardarDatosTemp, 
 }) => {
   const [formData, setFormData] = useState<FormularioCierreData>({
-    categoria: datosIniciales?.categoria || '',
+    categoria: datosIniciales?.categoria || 'BAJO',
     lugarCierre: datosIniciales?.lugarCierre || '',
     zona: datosIniciales?.zona || '',
     horaInicio: datosIniciales?.horaInicio || '',
@@ -99,15 +107,10 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     if (datosIniciales) {
       setFormData((prev) => ({
         ...prev,
+        ...datosIniciales,
         categoria: datosIniciales.categoria || prev.categoria,
-        lugarCierre: datosIniciales.lugarCierre || prev.lugarCierre,
-        zona: datosIniciales.zona || prev.zona,
-        horaInicio: datosIniciales.horaInicio || prev.horaInicio,
-        horaFin: datosIniciales.horaFin || prev.horaFin,
         fechaInicio: datosIniciales.fechaInicio || prev.fechaInicio,
         fechaFin: datosIniciales.fechaFin || prev.fechaFin,
-        motivo: datosIniciales.motivo || prev.motivo,
-        ubicaciones: datosIniciales.ubicaciones || prev.ubicaciones,
       }));
     }
   }, [datosIniciales]);
@@ -121,40 +124,37 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     }
   }, [ubicacionesSeleccionadas]);
 
-  // --- NUEVA FUNCIONALIDAD: Efecto para cálculo automático de Categoría ---
+  // --- EFECTO CORREGIDO PARA CÁLCULO DE CATEGORÍA ---
   useEffect(() => {
     const { fechaInicio, fechaFin, horaInicio, horaFin } = formData;
 
-    // Solo calculamos si existen ambas fechas
-    if (fechaInicio && fechaFin) {
+    if (fechaInicio) {
       const horasTotales = calcularDiferenciaHoras(fechaInicio, fechaFin, horaInicio, horaFin);
       
-      // Si la diferencia es negativa (fecha fin antes que inicio), no cambiamos nada aún 
-      // (la validación final está en handleSubmit)
       if (horasTotales < 0) return;
 
       let nuevaCategoria = 'BAJO';
+      // Convertir a días (con decimales)
       const diasTotales = horasTotales / 24;
 
-      // Reglas de negocio:
-      // - Bajo: <= 1 día (24 horas)
-      // - Medio: > 1 día y <= 6 días
-      // - Alto: > 6 días
-      if (diasTotales <= 1) {
+      // LÓGICA REVISADA:
+      // - BAJO: Hasta 24 horas (<= 1.0 días)
+      // - MEDIO: Más de 1 día y hasta 6 días
+      // - ALTO: Más de 6 días
+      if (diasTotales <= 1.0) {
         nuevaCategoria = 'BAJO';
-      } else if (diasTotales > 1 && diasTotales <= 6) {
+      } else if (diasTotales > 1.0 && diasTotales <= 6.0) {
         nuevaCategoria = 'MEDIO';
       } else {
         nuevaCategoria = 'ALTO';
       }
 
-      // Actualizamos solo si el valor es diferente para evitar re-renderizados infinitos
       if (formData.categoria !== nuevaCategoria) {
         setFormData((prev) => ({ ...prev, categoria: nuevaCategoria }));
       }
     }
-  }, [formData.fechaInicio, formData.fechaFin, formData.horaInicio, formData.horaFin, formData.categoria]);
-  // -----------------------------------------------------------------------
+  }, [formData.fechaInicio, formData.fechaFin, formData.horaInicio, formData.horaFin]);
+  // ---------------------------------------------------
 
   const [showInicioPicker, setShowInicioPicker] = useState(false);
   const [showFinPicker, setShowFinPicker] = useState(false);
@@ -185,31 +185,24 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       return;
     }
 
-    const hasDatePair = !!fechaInicio && !!fechaFin;
+    // Si fechaFin está vacía, asumimos que es el mismo día
+    const fechaFinFinal = fechaFin || fechaInicio;
+
+    if (!fechaInicio) {
+       Alert.alert('Error', 'Debe seleccionar al menos una fecha de inicio.');
+       return;
+    }
+
     const hasHourPair = !!horaInicio && !!horaFin;
-    const hasPartialDate = (!!fechaInicio && !fechaFin) || (!fechaInicio && !!fechaFin);
-    const hasPartialHour = (!!horaInicio && !horaFin) || (!horaInicio && !!horaFin);
 
-    if (hasPartialDate) {
-      Alert.alert('Error de Fechas', 'Si selecciona una fecha, debe seleccionar ambas (inicio y fin).');
-      return;
-    }
-    if (hasPartialHour) {
-      Alert.alert('Error de Horas', 'Si selecciona una hora, debe seleccionar ambas (inicio y fin).');
-      return;
-    }
-
-    if (!hasDatePair && !hasHourPair) {
-      Alert.alert('Error de Duración', 'Debe especificar un rango de fechas O un rango de horas para el cierre.');
-      return;
-    }
-
-    if (hasDatePair && parseISODate(fechaFin) < parseISODate(fechaInicio)) {
+    // Validación de fechas
+    if (fechaFin && parseISODate(fechaFin) < parseISODate(fechaInicio)) {
       Alert.alert("Error de Fechas", "La fecha de fin no puede ser anterior a la fecha de inicio.");
       return;
     }
     
-    if (hasHourPair && (!hasDatePair || fechaInicio === fechaFin)) {
+    // Validación de horas si es el mismo día
+    if ((!fechaFin || fechaInicio === fechaFin) && hasHourPair) {
       if (horaFin < horaInicio) {
         Alert.alert("Error de Horas", "La hora de fin no puede ser anterior a la hora de inicio para un cierre en el mismo día.");
         return;
@@ -223,28 +216,28 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
 
     const dataCompleta = {
       ...formData,
+      fechaFin: fechaFinFinal,
       ubicaciones: ubicacionesSeleccionadas,
     };
     onSubmit(dataCompleta);
   };
+
   const handleAbrirMapa = () => {
     if (onGuardarDatosTemp) {
       onGuardarDatosTemp(formData);
     }
     onAbrirMapa();
   };
+
   return (
     <View style={styles.container}>
-      {/* MODIFICACIÓN: Select bloqueado para evitar edición manual. 
-         Se muestra el valor calculado automáticamente.
-      */}
       <Select
         width={310}
         height={47}
         placeholder="Categoría (Automático)"
         options={categorias}
         value={formData.categoria}
-        // Se desactiva la interacción manual
+        disabled={true} 
         onValueChange={() => {}} 
       />
       
@@ -292,6 +285,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
             {formData.fechaInicio || "Fecha inicio"}
           </Text>
         </Pressable>
+        
         <Pressable
           style={styles.fakeInput} 
           onPress={() => {
