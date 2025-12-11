@@ -22,32 +22,47 @@ const parseISODate = (dateString: string): Date => {
   return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
 };
 
-// --- FUNCIÓN MEJORADA: Cálculo robusto de horas ---
-const calcularDiferenciaHoras = (fInicio: string, fFin: string, hInicio: string, hFin: string): number => {
-  if (!fInicio) return 0;
-
-  // Si no hay fecha fin, es el mismo día
-  const fechaFinal = fFin || fInicio;
+const calcularDiferenciaHoras = (
+  fInicio: string,
+  fFin: string,
+  hInicio: string,
+  hFin: string
+): number => {
   
-  // Normalizar horas 'HH:mm' a [HH, mm]
-  const [hIni, mIni] = (hInicio || '00:00').split(':').map(Number);
-  const [hFi, mFi] = (hFin || '00:00').split(':').map(Number);
+  if (!fInicio) {
+    return 0;
+  }
 
-  // Parsear fechas manualmente para evitar errores de Timezone
+  if (!hInicio && !hFin && !fFin) {
+    return 24;
+  }
+
+  if (hInicio && hFin && (!fFin || fFin === fInicio)) {
+    const [hIni, mIni] = hInicio.split(':').map(Number);
+    const [hFi, mFi] = hFin.split(':').map(Number);
+    const resultado = hFi - hIni + (mFi - mIni) / 60;
+    return resultado;
+  }
+
+  const fechaFinal = fFin || fInicio;
   const [y1, M1, d1] = fInicio.split('-').map(Number);
   const [y2, M2, d2] = fechaFinal.split('-').map(Number);
 
-  // Crear objetos fecha en UTC o locales consistentes
-  // Mes en JS es 0-indexado
-  const inicio = new Date(y1, M1 - 1, d1, hIni, mIni, 0);
-  const fin = new Date(y2, M2 - 1, d2, hFi, mFi, 0);
+  const dayStart = Date.UTC(y1, M1 - 1, d1) / (1000 * 60 * 60 * 24);
+  const dayEnd = Date.UTC(y2, M2 - 1, d2) / (1000 * 60 * 60 * 24);
+  const diffDays = dayEnd - dayStart;
 
-  const diffMs = fin.getTime() - inicio.getTime();
-  const horas = diffMs / (1000 * 60 * 60);
-  
-  return horas;
+  if (!hInicio && !hFin) {
+    return diffDays * 24;
+  }
+
+  const [hIni, mIni] = (hInicio || '00:00').split(':').map(Number);
+  const [hFi, mFi] = (hFin || '00:00').split(':').map(Number);
+  const diffHoras = hFi - hIni + (mFi - mIni) / 60;
+  const resultado = diffDays * 24 + diffHoras;
+  return resultado;
 };
-// ------------------------------------------------
+
 
 export interface UbicacionData {
   id: string | number;
@@ -124,37 +139,49 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     }
   }, [ubicacionesSeleccionadas]);
 
-  // --- EFECTO CORREGIDO PARA CÁLCULO DE CATEGORÍA ---
+  // --- CÁLCULO DE CATEGORÍA ---
   useEffect(() => {
     const { fechaInicio, fechaFin, horaInicio, horaFin } = formData;
 
-    if (fechaInicio) {
-      const horasTotales = calcularDiferenciaHoras(fechaInicio, fechaFin, horaInicio, horaFin);
-      
-      if (horasTotales < 0) return;
-
-      let nuevaCategoria = 'BAJO';
-      // Convertir a días (con decimales)
-      const diasTotales = horasTotales / 24;
-
-      // LÓGICA REVISADA:
-      // - BAJO: Hasta 24 horas (<= 1.0 días)
-      // - MEDIO: Más de 1 día y hasta 6 días
-      // - ALTO: Más de 6 días
-      if (diasTotales <= 1.0) {
-        nuevaCategoria = 'BAJO';
-      } else if (diasTotales > 1.0 && diasTotales <= 6.0) {
-        nuevaCategoria = 'MEDIO';
-      } else {
-        nuevaCategoria = 'ALTO';
-      }
-
-      if (formData.categoria !== nuevaCategoria) {
-        setFormData((prev) => ({ ...prev, categoria: nuevaCategoria }));
-      }
+    if (!fechaInicio) {
+      updateCategoria('BAJO');
+      return;
     }
-  }, [formData.fechaInicio, formData.fechaFin, formData.horaInicio, formData.horaFin]);
-  // ---------------------------------------------------
+
+    const horasTotales = calcularDiferenciaHoras(
+      fechaInicio,
+      fechaFin,
+      horaInicio,
+      horaFin
+    );
+
+    if (horasTotales < 0) {
+      return;
+    }
+
+    let nuevaCategoria: string;
+    if (horasTotales <= 24) {
+      nuevaCategoria = 'BAJO';
+    } else if (horasTotales > 24 && horasTotales <= 24 * 6) {
+      nuevaCategoria = 'MEDIO';
+    } else {
+      nuevaCategoria = 'ALTO';
+    }
+
+    updateCategoria(nuevaCategoria);
+  }, [
+    formData.fechaInicio,
+    formData.fechaFin,
+    formData.horaInicio,
+    formData.horaFin,
+  ]);
+
+  const updateCategoria = (categoria: string) => {
+    if (formData.categoria !== categoria) {
+      setFormData(prev => ({ ...prev, categoria }));
+    }
+  };
+
 
   const [showInicioPicker, setShowInicioPicker] = useState(false);
   const [showFinPicker, setShowFinPicker] = useState(false);
@@ -185,7 +212,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       return;
     }
 
-    // Si fechaFin está vacía, asumimos que es el mismo día
     const fechaFinFinal = fechaFin || fechaInicio;
 
     if (!fechaInicio) {
@@ -195,13 +221,11 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
 
     const hasHourPair = !!horaInicio && !!horaFin;
 
-    // Validación de fechas
     if (fechaFin && parseISODate(fechaFin) < parseISODate(fechaInicio)) {
       Alert.alert("Error de Fechas", "La fecha de fin no puede ser anterior a la fecha de inicio.");
       return;
     }
-    
-    // Validación de horas si es el mismo día
+   
     if ((!fechaFin || fechaInicio === fechaFin) && hasHourPair) {
       if (horaFin < horaInicio) {
         Alert.alert("Error de Horas", "La hora de fin no puede ser anterior a la hora de inicio para un cierre en el mismo día.");
@@ -219,34 +243,9 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       fechaFin: fechaFinFinal,
       ubicaciones: ubicacionesSeleccionadas,
     };
-
-    console.log(`✅ Cierre validado - Nivel: ${resultado.nivel}, Duración: ${resultado.dias.toFixed(2)} días (${resultado.horas.toFixed(1)} horas)`);
-    
-    // Ejecutar onSubmit
     onSubmit(dataCompleta);
-
-    // ✅ NUEVO: Limpiar el formulario después de enviar (solo para crear, no para editar)
-    if (tituloBoton === 'Crear') {
-      limpiarFormulario();
-    }
   };
-
-  // ✅ NUEVA FUNCIÓN: Limpiar todos los campos del formulario
-  const limpiarFormulario = () => {
-    setFormData({
-      categoria: '',
-      lugarCierre: '',
-      zona: '',
-      horaInicio: '',
-      horaFin: '',
-      fechaInicio: '',
-      fechaFin: '',
-      motivo: '',
-      ubicaciones: [],
-    });
-    setNivelInfo(null);
-  };
-
+ 
   const handleAbrirMapa = () => {
     if (onGuardarDatosTemp) {
       onGuardarDatosTemp(formData);
@@ -284,47 +283,124 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       />
       
       <View style={styles.filaFechas}>
-        <Horas
-          placeholder="Hora inicio"
-          value={formData.horaInicio}
-          onValueChange={(time) => setFormData({ ...formData, horaInicio: time })}
-          width={152}
-          height={47}
-        />
-        <Horas
-          placeholder="Hora fin"
-          value={formData.horaFin}
-          onValueChange={(time) => setFormData({ ...formData, horaFin: time })}
-          width={152}
-          height={47}
-          disabled={!formData.horaInicio}
-        />
+        <View style={styles.clearableInputContainer}>
+          <Horas
+            placeholder="Hora inicio"
+            value={formData.horaInicio}
+            onValueChange={time => setFormData({ ...formData, horaInicio: time })}
+            width={152}
+            height={47}
+          />
+          {formData.horaInicio ? (
+            <Pressable
+              style={styles.clearButton}
+              onPress={() =>
+                setFormData({
+                  ...formData,
+                  horaInicio: '',
+                  horaFin: '',
+                })
+              }
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </Pressable>
+          ) : null}
+        </View>
+        <View style={styles.clearableInputContainer}>
+          <Horas
+            placeholder="Hora fin"
+            value={formData.horaFin}
+            onValueChange={time => setFormData({ ...formData, horaFin: time })}
+            width={152}
+            height={47}
+            disabled={!formData.horaInicio}
+          />
+          {formData.horaFin ? (
+            <Pressable
+              style={styles.clearButton}
+              onPress={() =>
+                setFormData({
+                  ...formData,
+                  horaFin: '',
+                })
+              }
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
-      
+
       <View style={styles.filaFechas}>
-        <Pressable
-          style={styles.fakeInput} 
-          onPress={() => setShowInicioPicker(true)}
-        >
-          <Text style={[styles.fakeInputText, formData.fechaInicio ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder]}>
-            {formData.fechaInicio || "Fecha inicio"}
-          </Text>
-        </Pressable>
-        
-        <Pressable
-          style={styles.fakeInput} 
-          onPress={() => {
-            if (!formData.fechaInicio) {
-              Alert.alert("Aviso", "Por favor, seleccione primero una fecha de inicio.");
-            } else {
-              setShowFinPicker(true);
-            }
-          }}
-        >
-          <Text style={[styles.fakeInputText, formData.fechaFin ? styles.fakeInputTextSelected : styles.fakeInputTextPlaceholder]}>
-            {formData.fechaFin || "Fecha fin"}
-          </Text>
-        </Pressable>
+        <View style={styles.clearableInputContainer}>
+          <Pressable
+            style={styles.fakeInput}
+            onPress={() => setShowInicioPicker(true)}
+          >
+            <Text
+              style={[
+                styles.fakeInputText,
+                formData.fechaInicio
+                  ? styles.fakeInputTextSelected
+                  : styles.fakeInputTextPlaceholder,
+              ]}
+            >
+              {formData.fechaInicio || 'Fecha inicio'}
+            </Text>
+          </Pressable>
+
+          {formData.fechaInicio ? (
+            <Pressable
+              style={styles.clearButton}
+              onPress={() =>
+                setFormData({
+                  ...formData,
+                  fechaInicio: '',
+                  fechaFin: '',
+                })
+              }
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </Pressable>
+          ) : null}
+        </View>
+        <View style={styles.clearableInputContainer}>
+          <Pressable
+            style={styles.fakeInput}
+            onPress={() => {
+              if (!formData.fechaInicio) {
+                Alert.alert('Aviso', 'Por favor, seleccione primero una fecha de inicio.');
+              } else {
+                setShowFinPicker(true);
+              }
+            }}
+          >
+            <Text
+              style={[
+                styles.fakeInputText,
+                formData.fechaFin
+                  ? styles.fakeInputTextSelected
+                  : styles.fakeInputTextPlaceholder,
+              ]}
+            >
+              {formData.fechaFin || 'Fecha fin'}
+            </Text>
+          </Pressable>
+
+          {formData.fechaFin ? (
+            <Pressable
+              style={styles.clearButton}
+              onPress={() =>
+                setFormData({
+                  ...formData,
+                  fechaFin: '',
+                })
+              }
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <CalendarioPersonalizado
@@ -412,7 +488,26 @@ const styles = StyleSheet.create({
     width: 310,
     gap: 6,
   },
-  
+  clearableInputContainer: {
+    width: 152,
+    position: 'relative',
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 6,
+    top: 10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  clearButtonText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: 'bold',
+  },
   fakeInput: {
     width: 152,
     height: 47,
@@ -420,7 +515,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0', 
     borderRadius: 8, 
-    paddingHorizontal: 15, 
+    paddingHorizontal: 15,
+    paddingRight: 26, // espacio para la X 
     justifyContent: 'center', 
   },
   fakeInputText: {
