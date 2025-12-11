@@ -212,7 +212,7 @@ const PrincAdmin = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderSimple />
+      <HeaderSimple onPressRoute="/" />
       <ScrollView 
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refrescando} onRefresh={onRefresh} />}

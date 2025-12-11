@@ -276,7 +276,7 @@ const princSuper = () => {
   if (cargando) {
     return (
       <View style={styles.container}>
-        <HeaderSimple />
+        <HeaderSimple onPressRoute="/" />
         <View style={styles.centeredContainer}>
           <ActivityIndicator size="large" color="#068EF7" />
           <Text style={styles.loadingText}>Cargando cierres...</Text>
@@ -287,7 +287,7 @@ const princSuper = () => {
 
   return (
     <View style={styles.container}>
-      <HeaderSimple />
+      <HeaderSimple onPressRoute="/" />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refrescando} onRefresh={onRefresh} />}
