@@ -265,7 +265,29 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
 
     console.log(`✅ Cierre validado - Nivel: ${resultado.nivel}, Duración: ${resultado.dias.toFixed(2)} días (${resultado.horas.toFixed(1)} horas)`);
     
+    // Ejecutar onSubmit
     onSubmit(dataCompleta);
+
+    // ✅ NUEVO: Limpiar el formulario después de enviar (solo para crear, no para editar)
+    if (tituloBoton === 'Crear') {
+      limpiarFormulario();
+    }
+  };
+
+  // ✅ NUEVA FUNCIÓN: Limpiar todos los campos del formulario
+  const limpiarFormulario = () => {
+    setFormData({
+      categoria: '',
+      lugarCierre: '',
+      zona: '',
+      horaInicio: '',
+      horaFin: '',
+      fechaInicio: '',
+      fechaFin: '',
+      motivo: '',
+      ubicaciones: [],
+    });
+    setNivelInfo(null);
   };
 
   const handleAbrirMapa = () => {
