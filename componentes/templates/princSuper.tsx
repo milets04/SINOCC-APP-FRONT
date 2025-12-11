@@ -123,7 +123,7 @@ const princSuper = () => {
     obtenerCierres();
   }, [obtenerCierres]);
 
-  // 🟢 Función para calcular duración flexible (en días y horas)
+  
   const calcularDuracion = (
     fechaInicio: string | null,
     fechaFin: string | null,
@@ -131,19 +131,14 @@ const princSuper = () => {
     horaFin: string | null
   ) => {
     try {
-      console.log('📊 calcularDuracion llamada con:', { fechaInicio, fechaFin, horaInicio, horaFin });
-      // Si hay fechas
-      // Si no hay fecha de inicio, no podemos calcular
     if (!fechaInicio) {
       return "Duración desconocida";
     }
 
-    // CASO 1: Solo fecha inicio, sin horas y sin fecha fin -> cierre de 24 horas
     if (!horaInicio && !horaFin && !fechaFin) {
       return "Duración: 1 día";
     }
 
-    // CASO 2: Hay horas especificadas en el mismo día (sin fecha fin o fecha fin igual)
     if (horaInicio && horaFin && (!fechaFin || fechaFin === fechaInicio)) {
       const [h1, m1] = horaInicio.split(':').map(Number);
       const [h2, m2] = horaFin.split(':').map(Number);
@@ -153,32 +148,26 @@ const princSuper = () => {
       return `Duración: ${horas} hora${horas !== 1 ? 's' : ''}`;
     }
 
-    // CASO 3: Hay fecha fin diferente
     const fechaFinal = fechaFin || fechaInicio;
-    
-    // Parsear fechas en formato YYYY-MM-DD
+  
     const [y1, M1, d1] = fechaInicio.split('-').map(Number);
     const [y2, M2, d2] = fechaFinal.split('-').map(Number);
 
-    // Calcular diferencia de días usando UTC
     const dayStart = Date.UTC(y1, M1 - 1, d1) / (1000 * 60 * 60 * 24);
     const dayEnd = Date.UTC(y2, M2 - 1, d2) / (1000 * 60 * 60 * 24);
     const diffDays = dayEnd - dayStart;
 
-    // Solo fechas diferentes, sin horas
     if (!horaInicio && !horaFin) {
       const dias = diffDays;
       return `Duración: ${dias} día${dias !== 1 ? 's' : ''}`;
     }
 
-    // Fechas diferentes CON horas
     const [h1, m1] = (horaInicio || '00:00').split(':').map(Number);
     const [h2, m2] = (horaFin || '00:00').split(':').map(Number);
     const diffHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
     
     const horasTotales = diffDays * 24 + diffHoras;
-    
-    // Convertir a días y horas para mostrar
+
     const dias = Math.floor(horasTotales / 24);
     const horas = horasTotales % 24;
 
@@ -211,7 +200,7 @@ const princSuper = () => {
           descripcion: cierre.descripcion || "",
           fechaInicio: cierre.fechaInicio || "",
           fechaFin: cierre.fechaFin || "",
-          horaInicio: cierre.horaInicio || "", // 🟢 Se pasan también las horas
+          horaInicio: cierre.horaInicio || "", 
           horaFin: cierre.horaFin || "",
           idZona: cierre.idZona?.toString() || "",
         },
