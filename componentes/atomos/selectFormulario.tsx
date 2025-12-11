@@ -26,6 +26,7 @@ interface SelectProps {
   value?: string | number;
   onValueChange: (value: string | number) => void;
   style?: StyleProp<ViewStyle>;
+  disabled?: boolean; // NUEVA PROPIEDAD
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -36,6 +37,7 @@ const Select: React.FC<SelectProps> = ({
   value,
   onValueChange,
   style,
+  disabled = false, // Valor por defecto
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const animatedHeight = useRef(new Animated.Value(0)).current;
@@ -62,7 +64,9 @@ const Select: React.FC<SelectProps> = ({
   };
 
   const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+    if (!disabled) {
+      setIsOpen(!isOpen);
+    }
   };
 
   return (
@@ -72,32 +76,44 @@ const Select: React.FC<SelectProps> = ({
         style={[
           styles.selectButton, 
           { height },
-          isOpen && styles.selectButtonOpen
+          isOpen && styles.selectButtonOpen,
+          disabled && styles.disabledButton // Estilo condicional
         ]}
         onPress={toggleDropdown}
-        activeOpacity={0.7}
+        activeOpacity={disabled ? 1 : 0.7}
+        disabled={disabled}
       >
-        <Text style={[styles.selectText, !selectedOption && styles.placeholderText]}>
-          {displayText}
-        </Text>
-        <Animated.Text 
+        <Text 
           style={[
-            styles.arrow,
-            {
-              transform: [{
-                rotate: animatedHeight.interpolate({
-                  inputRange: [0, dropdownHeight],
-                  outputRange: ['0deg', '180deg'],
-                })
-              }]
-            }
+            styles.selectText, 
+            !selectedOption && styles.placeholderText,
+            disabled && styles.disabledText // Texto gris si está deshabilitado
           ]}
         >
-          ▼
-        </Animated.Text>
+          {displayText}
+        </Text>
+        
+        {/* Solo mostrar la flecha si NO está deshabilitado */}
+        {!disabled && (
+          <Animated.Text 
+            style={[
+              styles.arrow,
+              {
+                transform: [{
+                  rotate: animatedHeight.interpolate({
+                    inputRange: [0, dropdownHeight],
+                    outputRange: ['0deg', '180deg'],
+                  })
+                }]
+              }
+            ]}
+          >
+            ▼
+          </Animated.Text>
+        )}
       </TouchableOpacity>
 
-      {/* Dropdown animado - CAMBIADO A SCROLLVIEW */}
+      {/* Dropdown animado */}
       {isOpen && (
         <Animated.View
           style={[
@@ -155,6 +171,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     zIndex: 2,
+  },
+  // NUEVOS ESTILOS PARA DISABLED
+  disabledButton: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#D0D0D0',
+  },
+  disabledText: {
+    color: '#A0A0A0',
   },
   selectButtonOpen: {
     borderBottomLeftRadius: 0,
