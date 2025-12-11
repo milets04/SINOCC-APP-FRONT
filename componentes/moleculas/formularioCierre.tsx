@@ -33,10 +33,12 @@ const calcularDiferenciaHoras = (
     return 0;
   }
 
+  // Caso 1: Solo fecha inicio, sin horas ni fecha fin → 24 horas
   if (!hInicio && !hFin && !fFin) {
     return 24;
   }
 
+  // Caso 2: Mismo día con rango de horas
   if (hInicio && hFin && (!fFin || fFin === fInicio)) {
     const [hIni, mIni] = hInicio.split(':').map(Number);
     const [hFi, mFi] = hFin.split(':').map(Number);
@@ -44,6 +46,7 @@ const calcularDiferenciaHoras = (
     return resultado;
   }
 
+  // Determinar fecha final (si no hay fFin, usar fInicio)
   const fechaFinal = fFin || fInicio;
   const [y1, M1, d1] = fInicio.split('-').map(Number);
   const [y2, M2, d2] = fechaFinal.split('-').map(Number);
@@ -52,10 +55,13 @@ const calcularDiferenciaHoras = (
   const dayEnd = Date.UTC(y2, M2 - 1, d2) / (1000 * 60 * 60 * 24);
   const diffDays = dayEnd - dayStart;
 
+  // Caso 3: Rango de días sin horas específicas
   if (!hInicio && !hFin) {
-    return diffDays * 24;
+    // Si diffDays es 0 (mismo día sin horas), contar como 24 horas (1 día completo)
+    return diffDays === 0 ? 24 : diffDays * 24;
   }
 
+  // Caso 4: Rango de días con horas
   const [hIni, mIni] = (hInicio || '00:00').split(':').map(Number);
   const [hFi, mFi] = (hFin || '00:00').split(':').map(Number);
   const diffHoras = hFi - hIni + (mFi - mIni) / 60;
@@ -516,7 +522,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0', 
     borderRadius: 8, 
     paddingHorizontal: 15,
-    paddingRight: 26, // espacio para la X 
+    paddingRight: 26,
     justifyContent: 'center', 
   },
   fakeInputText: {

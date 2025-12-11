@@ -23,9 +23,9 @@ type Cierre = {
   categoria: string | null;
   lugarCierre: string;
   idZona: number | null;
-  fechaInicio: string | null; // 🟢 Puede venir nulo
+  fechaInicio: string | null;
   fechaFin: string | null;
-  horaInicio: string | null; // 🟢 Nuevos campos agregados
+  horaInicio: string | null;
   horaFin: string | null;
   descripcion: string | null;
   createdAt: string;
@@ -91,7 +91,7 @@ const princSuper = () => {
         const fallback = "http://localhost:3000/api/cierres";
         const responseFallback = await fetch(fallback);
         const dataFallback = await responseFallback.json();
-        console.log(" Respuesta backend (fallback):", dataFallback);
+        console.log("📋 Respuesta backend (fallback):", dataFallback);
 
         if (dataFallback.exito) {
           setCierres(dataFallback.datos);
@@ -131,59 +131,65 @@ const princSuper = () => {
     horaFin: string | null
   ) => {
     try {
-    if (!fechaInicio) {
+      if (!fechaInicio) {
+        return "Duración desconocida";
+      }
+
+      // Caso 1: Solo fecha inicio, sin horas ni fecha fin → 24 horas (1 día completo)
+      if (!horaInicio && !horaFin && !fechaFin) {
+        return "Duración: 24 horas (1 día)";
+      }
+
+      // Caso 2: Mismo día con rango de horas
+      if (horaInicio && horaFin && (!fechaFin || fechaFin === fechaInicio)) {
+        const [h1, m1] = horaInicio.split(':').map(Number);
+        const [h2, m2] = horaFin.split(':').map(Number);
+        const totalHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
+        const horas = Math.max(0, totalHoras);
+        
+        return `Duración: ${horas} hora${horas !== 1 ? 's' : ''}`;
+      }
+
+      // Determinar fecha final (si no hay fechaFin, usar fechaInicio)
+      const fechaFinal = fechaFin || fechaInicio;
+    
+      const [y1, M1, d1] = fechaInicio.split('-').map(Number);
+      const [y2, M2, d2] = fechaFinal.split('-').map(Number);
+
+      const dayStart = Date.UTC(y1, M1 - 1, d1) / (1000 * 60 * 60 * 24);
+      const dayEnd = Date.UTC(y2, M2 - 1, d2) / (1000 * 60 * 60 * 24);
+      const diffDays = dayEnd - dayStart;
+
+      // Caso 3: Rango de días sin horas específicas
+      if (!horaInicio && !horaFin) {
+        // Si diffDays es 0 (mismo día sin horas), contar como 1 día completo (24 horas)
+        const dias = diffDays === 0 ? 1 : diffDays;
+        return `Duración: ${dias} día${dias !== 1 ? 's' : ''}`;
+      }
+
+      // Caso 4: Rango de días con horas
+      const [h1, m1] = (horaInicio || '00:00').split(':').map(Number);
+      const [h2, m2] = (horaFin || '00:00').split(':').map(Number);
+      const diffHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
+      
+      const horasTotales = diffDays * 24 + diffHoras;
+
+      const dias = Math.floor(horasTotales / 24);
+      const horas = horasTotales % 24;
+
+      if (dias > 0 && horas > 0) {
+        return `Duración: ${dias} día${dias !== 1 ? 's' : ''} y ${horas} hora${horas !== 1 ? 's' : ''}`;
+      } else if (dias > 0) {
+        return `Duración: ${dias} día${dias !== 1 ? 's' : ''}`;
+      } else {
+        return `Duración: ${horas} hora${horas !== 1 ? 's' : ''}`;
+      }
+
+    } catch (error) {
+      console.error('❌ Error al calcular duración:', error);
       return "Duración desconocida";
     }
-
-    if (!horaInicio && !horaFin && !fechaFin) {
-      return "Duración: 1 día";
-    }
-
-    if (horaInicio && horaFin && (!fechaFin || fechaFin === fechaInicio)) {
-      const [h1, m1] = horaInicio.split(':').map(Number);
-      const [h2, m2] = horaFin.split(':').map(Number);
-      const totalHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
-      const horas = Math.max(0, totalHoras);
-      
-      return `Duración: ${horas} hora${horas !== 1 ? 's' : ''}`;
-    }
-
-    const fechaFinal = fechaFin || fechaInicio;
-  
-    const [y1, M1, d1] = fechaInicio.split('-').map(Number);
-    const [y2, M2, d2] = fechaFinal.split('-').map(Number);
-
-    const dayStart = Date.UTC(y1, M1 - 1, d1) / (1000 * 60 * 60 * 24);
-    const dayEnd = Date.UTC(y2, M2 - 1, d2) / (1000 * 60 * 60 * 24);
-    const diffDays = dayEnd - dayStart;
-
-    if (!horaInicio && !horaFin) {
-      const dias = diffDays;
-      return `Duración: ${dias} día${dias !== 1 ? 's' : ''}`;
-    }
-
-    const [h1, m1] = (horaInicio || '00:00').split(':').map(Number);
-    const [h2, m2] = (horaFin || '00:00').split(':').map(Number);
-    const diffHoras = (h2 + m2 / 60) - (h1 + m1 / 60);
-    
-    const horasTotales = diffDays * 24 + diffHoras;
-
-    const dias = Math.floor(horasTotales / 24);
-    const horas = horasTotales % 24;
-
-    if (dias > 0 && horas > 0) {
-      return `Duración: ${dias} día${dias !== 1 ? 's' : ''} y ${horas} hora${horas !== 1 ? 's' : ''}`;
-    } else if (dias > 0) {
-      return `Duración: ${dias} día${dias !== 1 ? 's' : ''}`;
-    } else {
-      return `Duración: ${horas} hora${horas !== 1 ? 's' : ''}`;
-    }
-
-  } catch (error) {
-    console.error('❌ Error al calcular duración:', error);
-    return "Duración desconocida";
-  }
-};
+  };
 
   const navegarACrearCierre = useCallback(() => {
     router.push("/crearCierre");
