@@ -22,66 +22,32 @@ const parseISODate = (dateString: string): Date => {
   return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
 };
 
-// ✅ NUEVA FUNCIÓN: Calcular nivel del cierre
-const calcularNivelCierre = (
-  fechaInicio: string,
-  horaInicio: string,
-  fechaFin: string,
-  horaFin: string
-): { nivel: 'Bajo' | 'Medio' | 'Alto' | null; horas: number; dias: number; error: string | null } => {
+// --- FUNCIÓN MEJORADA: Cálculo robusto de horas ---
+const calcularDiferenciaHoras = (fInicio: string, fFin: string, hInicio: string, hFin: string): number => {
+  if (!fInicio) return 0;
+
+  // Si no hay fecha fin, es el mismo día
+  const fechaFinal = fFin || fInicio;
   
-  if (!fechaInicio || !horaInicio || !fechaFin || !horaFin) {
-    return { nivel: null, horas: 0, dias: 0, error: 'Faltan datos de fecha u hora' };
-  }
+  // Normalizar horas 'HH:mm' a [HH, mm]
+  const [hIni, mIni] = (hInicio || '00:00').split(':').map(Number);
+  const [hFi, mFi] = (hFin || '00:00').split(':').map(Number);
 
-  try {
-    // Combinar fecha y hora
-    const inicio = new Date(`${fechaInicio}T${horaInicio}:00`);
-    const fin = new Date(`${fechaFin}T${horaFin}:00`);
+  // Parsear fechas manualmente para evitar errores de Timezone
+  const [y1, M1, d1] = fInicio.split('-').map(Number);
+  const [y2, M2, d2] = fechaFinal.split('-').map(Number);
 
-    // Validar que las fechas sean válidas
-    if (isNaN(inicio.getTime()) || isNaN(fin.getTime())) {
-      return { nivel: null, horas: 0, dias: 0, error: 'Fechas u horas inválidas' };
-    }
+  // Crear objetos fecha en UTC o locales consistentes
+  // Mes en JS es 0-indexado
+  const inicio = new Date(y1, M1 - 1, d1, hIni, mIni, 0);
+  const fin = new Date(y2, M2 - 1, d2, hFi, mFi, 0);
 
-    // Calcular diferencia en milisegundos
-    const diferenciaMs = fin.getTime() - inicio.getTime();
-    
-    // Validar que la fecha/hora fin sea posterior a la de inicio
-    if (diferenciaMs <= 0) {
-      return { nivel: null, horas: 0, dias: 0, error: 'La fecha/hora de fin debe ser posterior a la de inicio' };
-    }
-
-    // Convertir a horas y días
-    const horas = diferenciaMs / (1000 * 60 * 60);
-    const dias = horas / 24;
-
-    // Validar duración mínima de 1 hora
-    if (horas < 1) {
-      return { nivel: null, horas, dias, error: 'El cierre debe tener una duración mínima de 1 hora' };
-    }
-
-    // Determinar nivel según las reglas
-    // Bajo: 1 hora a 24 horas (1 día)
-    // Medio: más de 24 horas hasta 144 horas (6 días)
-    // Alto: más de 144 horas (más de 6 días)
-    let nivel: 'Bajo' | 'Medio' | 'Alto';
-    
-    if (horas >= 1 && horas <= 24) {
-      nivel = 'Bajo';
-    } else if (horas > 24 && horas <= 144) { // 144 horas = 6 días
-      nivel = 'Medio';
-    } else {
-      nivel = 'Alto';
-    }
-
-    return { nivel, horas, dias, error: null };
-    
-  } catch (error) {
-    console.error('Error al calcular nivel:', error);
-    return { nivel: null, horas: 0, dias: 0, error: 'Error al calcular el nivel del cierre' };
-  }
+  const diffMs = fin.getTime() - inicio.getTime();
+  const horas = diffMs / (1000 * 60 * 60);
+  
+  return horas;
 };
+// ------------------------------------------------
 
 export interface UbicacionData {
   id: string | number;
@@ -100,7 +66,6 @@ export interface FormularioCierreData {
   fechaFin: string;
   motivo: string;
   ubicaciones: UbicacionData[];
-  nivel?: 'Bajo' | 'Medio' | 'Alto'; // ✅ NUEVO: Campo calculado automáticamente
 }
 
 interface FormularioCierreProps {
@@ -127,7 +92,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   onGuardarDatosTemp, 
 }) => {
   const [formData, setFormData] = useState<FormularioCierreData>({
-    categoria: datosIniciales?.categoria || '',
+    categoria: datosIniciales?.categoria || 'BAJO',
     lugarCierre: datosIniciales?.lugarCierre || '',
     zona: datosIniciales?.zona || '',
     horaInicio: datosIniciales?.horaInicio || '',
@@ -138,25 +103,14 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     ubicaciones: datosIniciales?.ubicaciones || [],
   });
 
-  // ✅ NUEVO: Estado para mostrar el nivel en tiempo real
-  const [nivelInfo, setNivelInfo] = useState<{
-    nivel: 'Bajo' | 'Medio' | 'Alto';
-    duracion: string;
-  } | null>(null);
-
   useEffect(() => {
     if (datosIniciales) {
       setFormData((prev) => ({
         ...prev,
+        ...datosIniciales,
         categoria: datosIniciales.categoria || prev.categoria,
-        lugarCierre: datosIniciales.lugarCierre || prev.lugarCierre,
-        zona: datosIniciales.zona || prev.zona,
-        horaInicio: datosIniciales.horaInicio || prev.horaInicio,
-        horaFin: datosIniciales.horaFin || prev.horaFin,
         fechaInicio: datosIniciales.fechaInicio || prev.fechaInicio,
         fechaFin: datosIniciales.fechaFin || prev.fechaFin,
-        motivo: datosIniciales.motivo || prev.motivo,
-        ubicaciones: datosIniciales.ubicaciones || prev.ubicaciones,
       }));
     }
   }, [datosIniciales]);
@@ -170,29 +124,37 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     }
   }, [ubicacionesSeleccionadas]);
 
-  // ✅ NUEVO: Calcular nivel en tiempo real cuando cambian fechas/horas
+  // --- EFECTO CORREGIDO PARA CÁLCULO DE CATEGORÍA ---
   useEffect(() => {
-    const { fechaInicio, horaInicio, fechaFin, horaFin } = formData;
-    
-    if (fechaInicio && horaInicio && fechaFin && horaFin) {
-      const resultado = calcularNivelCierre(fechaInicio, horaInicio, fechaFin, horaFin);
+    const { fechaInicio, fechaFin, horaInicio, horaFin } = formData;
+
+    if (fechaInicio) {
+      const horasTotales = calcularDiferenciaHoras(fechaInicio, fechaFin, horaInicio, horaFin);
       
-      if (resultado.nivel && !resultado.error) {
-        const duracion = resultado.dias >= 1 
-          ? `${resultado.dias.toFixed(1)} día${resultado.dias >= 2 ? 's' : ''}` 
-          : `${resultado.horas.toFixed(1)} hora${resultado.horas >= 2 ? 's' : ''}`;
-        
-        setNivelInfo({
-          nivel: resultado.nivel,
-          duracion: duracion
-        });
+      if (horasTotales < 0) return;
+
+      let nuevaCategoria = 'BAJO';
+      // Convertir a días (con decimales)
+      const diasTotales = horasTotales / 24;
+
+      // LÓGICA REVISADA:
+      // - BAJO: Hasta 24 horas (<= 1.0 días)
+      // - MEDIO: Más de 1 día y hasta 6 días
+      // - ALTO: Más de 6 días
+      if (diasTotales <= 1.0) {
+        nuevaCategoria = 'BAJO';
+      } else if (diasTotales > 1.0 && diasTotales <= 6.0) {
+        nuevaCategoria = 'MEDIO';
       } else {
-        setNivelInfo(null);
+        nuevaCategoria = 'ALTO';
       }
-    } else {
-      setNivelInfo(null);
+
+      if (formData.categoria !== nuevaCategoria) {
+        setFormData((prev) => ({ ...prev, categoria: nuevaCategoria }));
+      }
     }
-  }, [formData.fechaInicio, formData.horaInicio, formData.fechaFin, formData.horaFin]);
+  }, [formData.fechaInicio, formData.fechaFin, formData.horaInicio, formData.horaFin]);
+  // ---------------------------------------------------
 
   const [showInicioPicker, setShowInicioPicker] = useState(false);
   const [showFinPicker, setShowFinPicker] = useState(false);
@@ -218,37 +180,33 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
   const handleSubmit = () => {
     const { categoria, lugarCierre, zona, motivo, fechaInicio, fechaFin, horaInicio, horaFin } = formData;
 
-    // Validación de campos requeridos
     if (!categoria || !lugarCierre || !zona || !motivo) {
       Alert.alert('Error', 'Por favor complete todos los campos (Categoría, Lugar, Zona, Motivo).');
       return;
     }
 
-    const hasDatePair = !!fechaInicio && !!fechaFin;
+    // Si fechaFin está vacía, asumimos que es el mismo día
+    const fechaFinFinal = fechaFin || fechaInicio;
+
+    if (!fechaInicio) {
+       Alert.alert('Error', 'Debe seleccionar al menos una fecha de inicio.');
+       return;
+    }
+
     const hasHourPair = !!horaInicio && !!horaFin;
-    const hasPartialDate = (!!fechaInicio && !fechaFin) || (!fechaInicio && !!fechaFin);
-    const hasPartialHour = (!!horaInicio && !horaFin) || (!horaInicio && !!horaFin);
 
-    if (hasPartialDate) {
-      Alert.alert('Error de Fechas', 'Si selecciona una fecha, debe seleccionar ambas (inicio y fin).');
+    // Validación de fechas
+    if (fechaFin && parseISODate(fechaFin) < parseISODate(fechaInicio)) {
+      Alert.alert("Error de Fechas", "La fecha de fin no puede ser anterior a la fecha de inicio.");
       return;
     }
-    if (hasPartialHour) {
-      Alert.alert('Error de Horas', 'Si selecciona una hora, debe seleccionar ambas (inicio y fin).');
-      return;
-    }
-
-    if (!hasDatePair || !hasHourPair) {
-      Alert.alert('Error de Duración', 'Debe especificar fecha de inicio, fecha de fin, hora de inicio y hora de fin.');
-      return;
-    }
-
-    // ✅ NUEVA VALIDACIÓN: Calcular y validar el nivel del cierre
-    const resultado = calcularNivelCierre(fechaInicio, horaInicio, fechaFin, horaFin);
     
-    if (resultado.error || !resultado.nivel) {
-      Alert.alert('Error de Duración', resultado.error || 'No se pudo calcular el nivel del cierre.');
-      return;
+    // Validación de horas si es el mismo día
+    if ((!fechaFin || fechaInicio === fechaFin) && hasHourPair) {
+      if (horaFin < horaInicio) {
+        Alert.alert("Error de Horas", "La hora de fin no puede ser anterior a la hora de inicio para un cierre en el mismo día.");
+        return;
+      }
     }
 
     if (ubicacionesSeleccionadas.length === 0) {
@@ -256,10 +214,9 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
       return;
     }
 
-    // ✅ NUEVO: Agregar el nivel calculado a los datos
-    const dataCompleta: FormularioCierreData = {
+    const dataCompleta = {
       ...formData,
-      nivel: resultado.nivel,
+      fechaFin: fechaFinFinal,
       ubicaciones: ubicacionesSeleccionadas,
     };
 
@@ -297,29 +254,16 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
     onAbrirMapa();
   };
 
-  // ✅ NUEVA FUNCIÓN: Obtener color según el nivel
-  const getNivelColor = (nivel: 'Bajo' | 'Medio' | 'Alto') => {
-    switch (nivel) {
-      case 'Bajo':
-        return '#28a745'; // Verde
-      case 'Medio':
-        return '#ffc107'; // Amarillo/Naranja
-      case 'Alto':
-        return '#dc3545'; // Rojo
-      default:
-        return '#6c757d'; // Gris
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Select
         width={310}
         height={47}
-        placeholder="Categoría"
+        placeholder="Categoría (Automático)"
         options={categorias}
         value={formData.categoria}
-        onValueChange={(value) => setFormData({ ...formData, categoria: value })}
+        disabled={true} 
+        onValueChange={() => {}} 
       />
       
       <Input
@@ -366,6 +310,7 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
             {formData.fechaInicio || "Fecha inicio"}
           </Text>
         </Pressable>
+        
         <Pressable
           style={styles.fakeInput} 
           onPress={() => {
@@ -381,19 +326,6 @@ const FormularioCierre: React.FC<FormularioCierreProps> = ({
           </Text>
         </Pressable>
       </View>
-
-      {/* ✅ NUEVO: Indicador de nivel del cierre */}
-      {nivelInfo && (
-        <View style={[styles.nivelIndicador, { borderColor: getNivelColor(nivelInfo.nivel) }]}>
-          <View style={styles.nivelContenido}>
-            <Text style={styles.nivelLabel}>Nivel del cierre:</Text>
-            <Text style={[styles.nivelValor, { color: getNivelColor(nivelInfo.nivel) }]}>
-              {nivelInfo.nivel}
-            </Text>
-          </View>
-          <Text style={styles.nivelDuracion}>Duración: {nivelInfo.duracion}</Text>
-        </View>
-      )}
 
       <CalendarioPersonalizado
         visible={showInicioPicker}
@@ -480,6 +412,7 @@ const styles = StyleSheet.create({
     width: 310,
     gap: 6,
   },
+  
   fakeInput: {
     width: 152,
     height: 47,
@@ -499,35 +432,9 @@ const styles = StyleSheet.create({
   fakeInputTextSelected: {
     color: '#000000', 
   },
+
   motivoInput: {
     paddingTop: 12,
-  },
-  // ✅ NUEVOS ESTILOS: Indicador de nivel
-  nivelIndicador: {
-    width: 310,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderRadius: 8,
-    padding: 12,
-    gap: 6,
-  },
-  nivelContenido: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  nivelLabel: {
-    fontSize: 14,
-    color: '#333333',
-    fontWeight: '500',
-  },
-  nivelValor: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  nivelDuracion: {
-    fontSize: 13,
-    color: '#666666',
   },
   seccionUbicacion: {
     width: 314,
